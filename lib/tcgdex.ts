@@ -13,15 +13,20 @@ export interface TCGdexSetBrief {
   };
 }
 
-export type SetSort = "recent" | "oldest" | "name";
+export type SetSort = "recent" | "oldest" | "name" | "progress";
 
 export async function getAllSets(
   sort: SetSort = "recent"
 ): Promise<TCGdexSetBrief[]> {
-  const sortField = sort === "name" ? "name" : "releaseDate";
+  const effectiveSort = sort === "progress" ? "recent" : sort;
+
+  const sortField =
+    effectiveSort === "name" ? "name" : "releaseDate";
 
   const sortOrder =
-    sort === "oldest" || sort === "name" ? "ASC" : "DESC";
+    effectiveSort === "oldest" || effectiveSort === "name"
+      ? "ASC"
+      : "DESC";
 
   const response = await fetch(
     `https://api.tcgdex.net/v2/en/sets?sort:field=${sortField}&sort:order=${sortOrder}`,
@@ -33,7 +38,9 @@ export async function getAllSets(
   );
 
   if (!response.ok) {
-    throw new Error(`Error obteniendo los sets: ${response.status}`);
+    throw new Error(
+      `Error obteniendo los sets: ${response.status}`
+    );
   }
 
   return response.json();
@@ -45,4 +52,14 @@ export async function getSet(setId: string) {
 
 export async function getCard(cardId: string) {
   return tcgdex.card.get(cardId);
+}
+
+export function getSetIdFromCardId(cardId: string): string {
+  const separatorIndex = cardId.indexOf("-");
+
+  if (separatorIndex === -1) {
+    return cardId;
+  }
+
+  return cardId.slice(0, separatorIndex);
 }
