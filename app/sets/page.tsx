@@ -1,3 +1,8 @@
+import Link from "next/link";
+import GlassPanel from "@/components/ui/GlassPanel";
+import SetCard from "@/components/pokemon/SetCard";
+import Navbar from "@/components/navigation/Navbar";
+
 const sets = [
   {
     name: "Scarlet & Violet—151",
@@ -27,56 +32,110 @@ const sets = [
 
 export default function SetsPage() {
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="mx-auto max-w-6xl px-6 py-8">
+    <main className="relative min-h-screen overflow-hidden text-[#111111]">
+      {/* Iluminación ambiental */}
+      <div className="soft-glow left-[-140px] top-[180px] h-72 w-72 bg-blue-300/25" />
+
+      <div className="soft-glow right-[-120px] top-[300px] h-80 w-80 bg-yellow-200/30" />
+
+      <div className="relative mx-auto min-h-screen max-w-[1400px] px-5 py-4 sm:px-8 lg:px-10">
+        {/* Navegación */}
+        <Navbar />
+
         {/* Encabezado */}
-        <header className="border-b border-zinc-800 pb-6">
-          <h1 className="text-3xl font-bold">Sets</h1>
+        <section className="py-12 sm:py-16">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                Pokémon TCG
+              </p>
 
-          <p className="mt-2 text-zinc-400">
-            Explora las expansiones de Pokémon TCG.
-          </p>
-        </header>
+              <h1 className="mt-2 text-4xl font-bold tracking-[-0.04em] text-zinc-900 sm:text-6xl">
+                Sets
+              </h1>
 
-        {/* Lista de sets */}
-        <section className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {sets.map((set) => (
-            <article
-              key={set.code}
-              className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5 transition hover:-translate-y-1 hover:border-zinc-700"
-            >
-              {/* Espacio para la imagen */}
-              <div className="flex aspect-square items-center justify-center rounded-xl bg-zinc-800">
-                <span className="text-sm text-zinc-500">
-                  Logo del set
-                </span>
-              </div>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-500 sm:text-lg">
+                Explora las expansiones y revisa el progreso de tu colección.
+              </p>
+            </div>
 
-              {/* Información */}
-              <div className="mt-5">
-                <h2 className="font-semibold">{set.name}</h2>
+            {/* Filtros provisionales */}
+            <GlassPanel className="flex w-fit items-center gap-2 rounded-full p-1.5">
+              <button
+                type="button"
+                className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white"
+              >
+                Todos
+              </button>
 
-                <p className="mt-2 text-sm text-zinc-400">
-                  {set.cards} cartas
+              <button
+                type="button"
+                className="rounded-full px-4 py-2 text-sm text-zinc-500 transition hover:bg-white/70"
+              >
+                En progreso
+              </button>
+
+              <button
+                type="button"
+                className="rounded-full px-4 py-2 text-sm text-zinc-500 transition hover:bg-white/70"
+              >
+                Completados
+              </button>
+            </GlassPanel>
+          </div>
+        </section>
+
+        {/* Sets */}
+        <section className="pb-16">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {sets.map((set) => (
+              <SetCard
+                key={set.code}
+                name={set.name}
+                code={set.code}
+                cards={set.cards}
+                progress={set.progress}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Información */}
+        <section className="pb-10">
+          <GlassPanel className="rounded-[28px] p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                  Tu colección
                 </p>
 
-                <div className="mt-4">
-                  <div className="flex justify-between text-xs text-zinc-400">
-                    <span>Progreso</span>
-                    <span>{set.progress}%</span>
-                  </div>
+                <h2 className="mt-1 text-xl font-bold text-zinc-900">
+                  0 sets completados
+                </h2>
 
-                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-zinc-800">
-                    <div
-                      className="h-full rounded-full bg-blue-600"
-                      style={{ width: `${set.progress}%` }}
-                    />
-                  </div>
-                </div>
+                <p className="mt-1 text-sm text-zinc-500">
+                  Cuando conectemos la colección, este resumen se actualizará
+                  automáticamente.
+                </p>
               </div>
-            </article>
-          ))}
+
+              <Link
+                href="/"
+                className="w-fit rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
+              >
+                Volver al inicio
+              </Link>
+            </div>
+          </GlassPanel>
         </section>
+
+        {/* Footer */}
+        <footer className="border-t border-black/5 py-5 text-xs text-zinc-400">
+          <div className="flex items-center justify-between">
+            <span>Pokémon TCG Collection</span>
+            <span>MVP v0.1</span>
+          </div>
+        </footer>
       </div>
     </main>
   );
