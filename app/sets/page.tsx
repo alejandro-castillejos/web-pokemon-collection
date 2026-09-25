@@ -1,36 +1,40 @@
 import Link from "next/link";
 import GlassPanel from "@/components/ui/GlassPanel";
 import SetCard from "@/components/pokemon/SetCard";
+import SetSort from "@/components/pokemon/SetSort";
 import Navbar from "@/components/navigation/Navbar";
+import {
+  getAllSets,
+  type SetSort as SetSortType,
+} from "@/lib/tcgdex";
 
-const sets = [
-  {
-    name: "Scarlet & Violet—151",
-    code: "sv3pt5",
-    cards: 207,
-    progress: 0,
-  },
-  {
-    name: "Destined Rivals",
-    code: "sv10",
-    cards: 244,
-    progress: 0,
-  },
-  {
-    name: "Prismatic Evolutions",
-    code: "sv8pt5",
-    cards: 180,
-    progress: 0,
-  },
-  {
-    name: "Surging Sparks",
-    code: "sv8",
-    cards: 252,
-    progress: 0,
-  },
-];
+interface SetsPageProps {
+  searchParams: Promise<{
+    sort?: string;
+  }>;
+}
 
-export default function SetsPage() {
+function getValidSort(value?: string): SetSortType {
+  if (value === "oldest") {
+    return "oldest";
+  }
+
+  if (value === "name") {
+    return "name";
+  }
+
+  return "recent";
+}
+
+export default async function SetsPage({
+  searchParams,
+}: SetsPageProps) {
+  const { sort } = await searchParams;
+
+  const currentSort = getValidSort(sort);
+
+  const tcgSets = await getAllSets(currentSort);
+
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
       {/* Iluminación ambiental */}
@@ -39,7 +43,6 @@ export default function SetsPage() {
       <div className="soft-glow right-[-120px] top-[300px] h-80 w-80 bg-yellow-200/30" />
 
       <div className="relative mx-auto min-h-screen max-w-[1400px] px-5 py-4 sm:px-8 lg:px-10">
-        {/* Navegación */}
         <Navbar />
 
         {/* Encabezado */}
@@ -59,42 +62,35 @@ export default function SetsPage() {
               </p>
             </div>
 
-            {/* Filtros provisionales */}
-            <GlassPanel className="flex w-fit items-center gap-2 rounded-full p-1.5">
-              <button
-                type="button"
-                className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white"
-              >
-                Todos
-              </button>
-
-              <button
-                type="button"
-                className="rounded-full px-4 py-2 text-sm text-zinc-500 transition hover:bg-white/70"
-              >
-                En progreso
-              </button>
-
-              <button
-                type="button"
-                className="rounded-full px-4 py-2 text-sm text-zinc-500 transition hover:bg-white/70"
-              >
-                Completados
-              </button>
-            </GlassPanel>
+            <SetSort currentSort={currentSort} />
           </div>
         </section>
 
-        {/* Sets */}
+        {/* Sets reales */}
         <section className="pb-16">
+          <div className="mb-5 flex items-center justify-between">
+            <p className="text-sm text-zinc-500">
+              {tcgSets.length} sets encontrados
+            </p>
+
+            <p className="text-xs uppercase tracking-[0.15em] text-zinc-400">
+              {currentSort === "recent"
+                ? "Más recientes"
+                : currentSort === "oldest"
+                  ? "Más antiguos"
+                  : "Nombre A-Z"}
+            </p>
+          </div>
+
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {sets.map((set) => (
+            {tcgSets.map((set) => (
               <SetCard
-                key={set.code}
+                key={set.id}
                 name={set.name}
-                code={set.code}
-                cards={set.cards}
-                progress={set.progress}
+                code={set.id}
+                cards={set.cardCount.total}
+                progress={0}
+                logo={set.logo}
               />
             ))}
           </div>
@@ -114,8 +110,8 @@ export default function SetsPage() {
                 </h2>
 
                 <p className="mt-1 text-sm text-zinc-500">
-                  Cuando conectemos la colección, este resumen se actualizará
-                  automáticamente.
+                  El progreso se conectará a tu colección en una siguiente
+                  etapa.
                 </p>
               </div>
 

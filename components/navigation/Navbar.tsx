@@ -1,6 +1,32 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export default function Navbar() {
+  const pathname = usePathname();
+
+  const isHome = pathname === "/";
+  const isSets = pathname.startsWith("/sets");
+  const isCollection = pathname.startsWith("/collection");
+  const isWishlist = pathname.startsWith("/wishlist");
+
+  let searchPlaceholder = "Buscar cartas, sets...";
+
+  if (isSets) {
+    searchPlaceholder = pathname === "/sets"
+      ? "Buscar sets..."
+      : "Buscar cartas...";
+  }
+
+  if (isCollection) {
+    searchPlaceholder = "Buscar en mi colección...";
+  }
+
+  if (isWishlist) {
+    searchPlaceholder = "Buscar en mi wishlist...";
+  }
+
   return (
     <header className="glass sticky top-4 z-30 rounded-[28px] px-4 py-3 sm:px-5">
       <div className="flex items-center justify-between gap-4">
@@ -25,42 +51,66 @@ export default function Navbar() {
         <nav className="hidden items-center gap-1 md:flex">
           <Link
             href="/"
-            className="rounded-full bg-white/70 px-4 py-2 text-sm font-semibold shadow-sm"
+            className={`rounded-full px-4 py-2 text-sm transition ${
+              isHome
+                ? "bg-white/70 font-semibold text-zinc-900 shadow-sm"
+                : "text-zinc-600 hover:bg-white/50 hover:text-zinc-900"
+            }`}
           >
             Inicio
           </Link>
 
           <Link
             href="/sets"
-            className="rounded-full px-4 py-2 text-sm text-zinc-600 transition hover:bg-white/50 hover:text-zinc-900"
+            className={`rounded-full px-4 py-2 text-sm transition ${
+              isSets
+                ? "bg-white/70 font-semibold text-zinc-900 shadow-sm"
+                : "text-zinc-600 hover:bg-white/50 hover:text-zinc-900"
+            }`}
           >
             Sets
           </Link>
 
-          <span className="rounded-full px-4 py-2 text-sm text-zinc-600">
+          <Link
+            href="/collection"
+            className={`rounded-full px-4 py-2 text-sm transition ${
+              isCollection
+                ? "bg-white/70 font-semibold text-zinc-900 shadow-sm"
+                : "text-zinc-600 hover:bg-white/50 hover:text-zinc-900"
+            }`}
+          >
             Colección
-          </span>
+          </Link>
 
-          <span className="rounded-full px-4 py-2 text-sm text-zinc-600">
+          <Link
+            href="/wishlist"
+            className={`rounded-full px-4 py-2 text-sm transition ${
+              isWishlist
+                ? "bg-white/70 font-semibold text-zinc-900 shadow-sm"
+                : "text-zinc-600 hover:bg-white/50 hover:text-zinc-900"
+            }`}
+          >
             Wishlist
-          </span>
+          </Link>
         </nav>
 
         {/* Acciones */}
         <div className="flex items-center gap-2">
           <div className="hidden items-center rounded-full border border-black/5 bg-white/55 px-4 py-2.5 lg:flex">
-            <span className="mr-2 text-sm text-zinc-400">⌕</span>
+            <span className="mr-2 text-sm text-zinc-400">
+              ⌕
+            </span>
 
             <input
               type="text"
-              placeholder="Buscar cartas, sets..."
+              placeholder={searchPlaceholder}
               className="w-44 bg-transparent text-sm outline-none placeholder:text-zinc-400"
             />
           </div>
 
           <button
             type="button"
-            aria-label="Notificaciones"
+            aria-label="Wishlist"
             className="glass-hover flex h-10 w-10 items-center justify-center rounded-full text-zinc-600"
           >
             ♡
