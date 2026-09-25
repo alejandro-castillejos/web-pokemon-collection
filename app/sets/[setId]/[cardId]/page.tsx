@@ -1,9 +1,11 @@
 import Link from "next/link";
 import Navbar from "@/components/navigation/Navbar";
 import GlassPanel from "@/components/ui/GlassPanel";
-import GlassButton from "@/components/ui/GlassButton";
 import { getSet, getCard } from "@/lib/tcgdex";
 import CardImage from "@/components/pokemon/CardImage";
+import { createClient } from "@/lib/supabase/server";
+import CollectionButton from "@/components/pokemon/CollectionButton";
+import WishlistButton from "@/components/pokemon/WishlistButton";
 
 interface CardPageProps {
   params: Promise<{
@@ -17,6 +19,37 @@ export default async function CardPage({ params }: CardPageProps) {
 
   const set = await getSet(setId);
   const card = await getCard(cardId);
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let owned = false;
+
+  if (user) {
+    const { data: collectionItem } = await supabase
+      .from("collection")
+      .select("card_id")
+      .eq("user_id", user.id)
+      .eq("card_id", cardId)
+      .maybeSingle();
+
+    owned = !!collectionItem;
+  }
+
+  let wishlist = false;
+
+  if (user) {
+    const { data: wishlistItem } = await supabase
+      .from("wishlist")
+      .select("card_id")
+      .eq("user_id", user.id)
+      .eq("card_id", cardId)
+      .maybeSingle();
+
+    wishlist = !!wishlistItem;
+  }
 
   if (!set || !card) {
     return (
@@ -44,11 +77,6 @@ export default async function CardPage({ params }: CardPageProps) {
       </main>
     );
   }
-
-  // Estado temporal.
-  // Más adelante estos valores vendrán de Supabase.
-  const owned = false;
-  const wishlist = false;
 
   // Imagen real de TCGdex.
   return (
@@ -134,64 +162,19 @@ export default async function CardPage({ params }: CardPageProps) {
                 Información de la carta proporcionada por TCGdex.
               </p>
 
-              {/* Estado */}
-              <GlassPanel className="mt-8 rounded-[28px] p-5 sm:p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
-                  Estado
-                </p>
-
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div
-                    className={`rounded-2xl p-4 ${
-                      owned
-                        ? "bg-emerald-100"
-                        : "bg-black/[0.025]"
-                    }`}
-                  >
-                    <p className="text-xs text-zinc-500">
-                      Colección
-                    </p>
-
-                    <p className="mt-1 text-sm font-bold text-zinc-900">
-                      {owned
-                        ? "✓ Ya la tienes"
-                        : "No está en colección"}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`rounded-2xl p-4 ${
-                      wishlist
-                        ? "bg-pink-100"
-                        : "bg-black/[0.025]"
-                    }`}
-                  >
-                    <p className="text-xs text-zinc-500">
-                      Wishlist
-                    </p>
-
-                    <p className="mt-1 text-sm font-bold text-zinc-900">
-                      {wishlist
-                        ? "♥ En tu wishlist"
-                        : "No está en wishlist"}
-                    </p>
-                  </div>
-                </div>
-              </GlassPanel>
-
               {/* Acciones */}
               <div className="mt-6 flex flex-wrap gap-3">
-                <GlassButton variant="primary">
-                  {owned
-                    ? "✓ En mi colección"
-                    : "+ Agregar a colección"}
-                </GlassButton>
+                <CollectionButton
+                  cardId={cardId}
+                  setId={setId}
+                  initialOwned={owned}
+                />
 
-                <GlassButton>
-                  {wishlist
-                    ? "♥ En mi wishlist"
-                    : "♡ Agregar a wishlist"}
-                </GlassButton>
+                <WishlistButton
+                  cardId={cardId}
+                  setId={setId}
+                  initialWishlist={wishlist}
+                />
               </div>
             </div>
           </div>

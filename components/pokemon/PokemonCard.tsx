@@ -1,13 +1,13 @@
 import Link from "next/link";
 import GlassPanel from "@/components/ui/GlassPanel";
 import CardImage from "@/components/pokemon/CardImage";
+import CardActionButtons from "@/components/pokemon/CardActionButtons";
 
 interface PokemonCardProps {
   setId: string;
   cardId: string;
   number: string;
   name: string;
-  rarity: string;
   image?: string;
   owned?: boolean;
   wishlist?: boolean;
@@ -18,18 +18,17 @@ export default function PokemonCard({
   cardId,
   number,
   name,
-  rarity,
   image,
   owned = false,
   wishlist = false,
 }: PokemonCardProps) {
   return (
-    <Link
-      href={`/sets/${setId}/${cardId}`}
-      className="group block"
-    >
-      <GlassPanel className="glass-hover overflow-hidden rounded-[24px] p-3">
-        {/* Imagen de la carta */}
+    <GlassPanel className="group overflow-hidden rounded-[24px] p-3 transition duration-200 hover:-translate-y-1">
+      {/* Área de la carta */}
+      <Link
+        href={`/sets/${setId}/${cardId}`}
+        className="block"
+      >
         <div className="relative overflow-hidden rounded-[18px] bg-zinc-100">
           <CardImage
             src={image}
@@ -39,20 +38,6 @@ export default function PokemonCard({
             quality="low"
             className="block w-full transition duration-300 group-hover:scale-[1.02]"
           />
-
-          {/* Colección */}
-          {owned && (
-            <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white shadow-lg">
-              ✓
-            </span>
-          )}
-
-          {/* Wishlist */}
-          {wishlist && (
-            <span className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-pink-500 text-sm font-bold text-white shadow-lg">
-              ♥
-            </span>
-          )}
         </div>
 
         {/* Información */}
@@ -68,16 +53,19 @@ export default function PokemonCard({
               </p>
             </div>
 
-            <span className="shrink-0 rounded-full bg-black/5 px-2.5 py-1 text-[10px] font-semibold text-zinc-500">
-              {rarity}
-            </span>
-          </div>
-
-          <div className="mt-4 flex h-9 items-center justify-center rounded-xl bg-black/[0.025] text-xs font-semibold text-zinc-500 transition group-hover:bg-black/5">
-            Ver carta →
-          </div>
+            </div>
         </div>
-      </GlassPanel>
-    </Link>
+      </Link>
+
+      {/* Acciones */}
+      <div className="flex justify-end px-1 pb-1 pt-2">
+        <CardActionButtons
+          cardId={cardId}
+          setId={setId}
+          initialOwned={owned}
+          initialWishlist={wishlist}
+        />
+      </div>
+    </GlassPanel>
   );
 }

@@ -4,6 +4,7 @@ import GlassPanel from "@/components/ui/GlassPanel";
 import GlassButton from "@/components/ui/GlassButton";
 import PokemonCard from "@/components/pokemon/PokemonCard";
 import { getSet } from "@/lib/tcgdex";
+import { createClient } from "@/lib/supabase/server";
 
 interface SetPageProps {
   params: Promise<{
@@ -44,6 +45,40 @@ export default async function SetPage({ params }: SetPageProps) {
   }
 
   const cards = set.cards ?? [];
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const ownedCardIds = new Set<string>();
+  const wishlistCardIds = new Set<string>();
+
+  if (user && cards.length > 0) {
+    const cardIds = cards.map((card) => card.id);
+
+    const [collectionResult, wishlistResult] = await Promise.all([
+      supabase
+        .from("collection")
+        .select("card_id")
+        .eq("user_id", user.id)
+        .in("card_id", cardIds),
+
+      supabase
+        .from("wishlist")
+        .select("card_id")
+        .eq("user_id", user.id)
+        .in("card_id", cardIds),
+    ]);
+
+    (collectionResult.data ?? []).forEach((item) => {
+      ownedCardIds.add(item.card_id);
+    });
+
+    (wishlistResult.data ?? []).forEach((item) => {
+      wishlistCardIds.add(item.card_id);
+    });
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
@@ -150,17 +185,16 @@ export default async function SetPage({ params }: SetPageProps) {
         <section className="pb-16">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {cards.map((card) => (
-                <PokemonCard
-                    key={card.id}
-                    setId={set.id}
-                    cardId={card.id}
-                    number={String(card.localId)}
-                    name={card.name}
-                    rarity="—"
-                    image={card.image}
-                    owned={false}
-                    wishlist={false}
-                />
+              <PokemonCard
+                key={card.id}
+                setId={set.id}
+                cardId={card.id}
+                number={String(card.localId)}
+                name={card.name}
+                image={card.image}
+                owned={ownedCardIds.has(card.id)}
+                wishlist={wishlistCardIds.has(card.id)}
+              />
             ))}
           </div>
         </section>
