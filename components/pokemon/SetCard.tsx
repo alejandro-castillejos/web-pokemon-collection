@@ -6,7 +6,9 @@ interface SetCardProps {
   code: string;
   cards: number;
   progress: number;
+  ownedCards?: number;
   logo?: string;
+  basePath?: string;
 }
 
 export default function SetCard({
@@ -14,10 +16,12 @@ export default function SetCard({
   code,
   cards,
   progress,
+  ownedCards,
   logo,
+  basePath = "/sets",
 }: SetCardProps) {
   return (
-    <Link href={`/sets/${code}`} className="group block">
+    <Link href={`${basePath}/${code}`} className="group block">
       <GlassPanel className="glass-hover overflow-hidden rounded-[28px] p-3">
         {/* Imagen / logo del set */}
         <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-[22px] bg-gradient-to-br from-white via-zinc-100 to-zinc-200">
@@ -54,7 +58,9 @@ export default function SetCard({
             </div>
 
             <span className="shrink-0 rounded-full bg-black/5 px-3 py-1 text-xs font-medium text-zinc-500">
-              {cards} cartas
+              {ownedCards !== undefined
+                ? `${ownedCards} / ${cards}`
+                : `${cards} cartas`}
             </span>
           </div>
 
