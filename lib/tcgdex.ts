@@ -13,7 +13,12 @@ export interface TCGdexSetBrief {
   };
 }
 
-export type SetSort = "recent" | "oldest" | "name" | "progress";
+export type SetSort =
+  | "recent"
+  | "oldest"
+  | "name"
+  | "name-desc"
+  | "progress";
 
 export async function getAllSets(
   sort: SetSort = "recent"
@@ -21,13 +26,15 @@ export async function getAllSets(
   const effectiveSort = sort === "progress" ? "recent" : sort;
 
   const sortField =
-    effectiveSort === "name" ? "name" : "releaseDate";
+    effectiveSort === "name" || effectiveSort === "name-desc"
+      ? "name"
+      : "releaseDate";
 
   const sortOrder =
     effectiveSort === "oldest" || effectiveSort === "name"
       ? "ASC"
       : "DESC";
-
+      
   const response = await fetch(
     `https://api.tcgdex.net/v2/en/sets?sort:field=${sortField}&sort:order=${sortOrder}`,
     {

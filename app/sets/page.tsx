@@ -20,6 +20,7 @@ const validSorts: SetSortType[] = [
   "recent",
   "oldest",
   "name",
+  "name-desc",
   "progress",
 ];
 
@@ -34,22 +35,22 @@ export default async function SetsPage({
     ? (params.sort as SetSortType)
     : "recent";
 
-  // Cuando usamos "Mayor progreso", necesitamos que los sets
-  // lleguen inicialmente ordenados por fecha reciente.
-  const sets = await getAllSets(
-    currentSort === "progress" ? "recent" : currentSort
-  );
-
-  // Obtener las cartas que tiene el usuario.
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Iniciamos TCGdex y la autenticación al mismo tiempo.
+  const [sets, authResult] = await Promise.all([
+    getAllSets(
+      currentSort === "progress" ? "recent" : currentSort
+    ),
+    supabase.auth.getClaims(),
+  ]);
+
+  const { data: claims } = authResult;
 
   const ownedBySet = new Map<string, number>();
 
-  if (user) {
+  // Solo necesitamos consultar collection si existe un usuario.
+  if (claims) {
     const { data: collectionRows, error } = await supabase
       .from("collection")
       .select("card_id");
@@ -70,7 +71,7 @@ export default async function SetsPage({
     }
   }
 
-  // Calcular progreso real de cada set.
+  // Calcular el progreso real de cada set.
   const setsWithProgress = sets.map((set) => {
     const owned = ownedBySet.get(set.id) ?? 0;
 
@@ -92,15 +93,9 @@ export default async function SetsPage({
 
   // Orden especial: Mayor progreso.
   if (currentSort === "progress") {
-    // Guardamos la posición original para utilizar
-    // "Más recientes" como criterio secundario.
-    const recentOrder = new Map(
-      setsWithProgress.map((set, index) => [
-        set.id,
-        index,
-      ])
-    );
-
+    // "sets" ya viene ordenado por más recientes.
+    // Por eso, cuando hay empate de progreso,
+    // se conserva ese orden.
     orderedSets = [...setsWithProgress].sort((a, b) => {
       const progressA =
         a.cardCount.total > 0
@@ -112,16 +107,11 @@ export default async function SetsPage({
           ? b.owned / b.cardCount.total
           : 0;
 
-      // Mayor progreso primero.
       if (progressA !== progressB) {
         return progressB - progressA;
       }
 
-      // En empate: más recientes primero.
-      return (
-        (recentOrder.get(a.id) ?? 0) -
-        (recentOrder.get(b.id) ?? 0)
-      );
+      return 0;
     });
   }
 
