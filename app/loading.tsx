@@ -2,31 +2,6 @@ export default function Loading() {
   return (
     <main className="min-h-screen overflow-hidden bg-[#f4f5f7] px-5 py-4 text-[#111111] sm:px-8 lg:px-10">
       <div className="mx-auto flex min-h-screen max-w-[1400px] flex-col">
-        {/* Navbar skeleton */}
-        <div className="glass flex h-[62px] animate-pulse items-center justify-between rounded-[28px] px-5">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-black/10" />
-
-            <div className="hidden sm:block">
-              <div className="h-4 w-28 rounded-full bg-black/10" />
-              <div className="mt-2 h-3 w-16 rounded-full bg-black/6" />
-            </div>
-          </div>
-
-          <div className="hidden items-center gap-2 md:flex">
-            <div className="h-9 w-20 rounded-full bg-black/6" />
-            <div className="h-9 w-16 rounded-full bg-black/5" />
-            <div className="h-9 w-24 rounded-full bg-black/5" />
-            <div className="h-9 w-20 rounded-full bg-black/5" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <div className="hidden h-10 w-48 rounded-full bg-black/5 lg:block" />
-            <div className="h-10 w-10 rounded-full bg-black/6" />
-            <div className="h-10 w-10 rounded-full bg-black/6" />
-          </div>
-        </div>
-
         {/* Contenido principal */}
         <section className="grid flex-1 items-center gap-10 py-14 lg:grid-cols-[1.45fr_0.7fr] lg:py-20">
           {/* Hero skeleton */}
