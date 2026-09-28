@@ -1,6 +1,5 @@
 import { login, signup } from "./actions";
 import GlassPanel from "@/components/ui/GlassPanel";
-import Navbar from "@/components/navigation/Navbar";
 import Link from "next/link";
 
 interface LoginPageProps {
@@ -25,7 +24,6 @@ export default async function LoginPage({
       <div className="soft-glow right-[-120px] top-[300px] h-80 w-80 bg-yellow-200/30" />
 
       <div className="relative mx-auto min-h-screen max-w-[1400px] px-5 py-4 sm:px-8 lg:px-10">
-        <Navbar />
 
         <section className="flex min-h-[calc(100vh-120px)] items-center justify-center py-12">
           <GlassPanel

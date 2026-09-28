@@ -1,6 +1,5 @@
 import GlassButton from "@/components/ui/GlassButton";
 import GlassPanel from "@/components/ui/GlassPanel";
-import Navbar from "@/components/navigation/Navbar";
 
 const stats = [
   {
@@ -44,9 +43,7 @@ export default function Home() {
       <div className="soft-glow bottom-[80px] left-[40%] h-72 w-72 bg-emerald-200/20" />
 
       <div className="relative mx-auto flex min-h-screen max-w-[1400px] flex-col px-5 py-4 sm:px-8 lg:px-10">
-        {/* NAVBAR */}
-        <Navbar />
-
+        
         {/* HERO */}
         <section className="grid flex-1 items-center gap-10 py-14 lg:grid-cols-[1.45fr_0.7fr] lg:py-20">
           <div>

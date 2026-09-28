@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Navbar from "@/components/navigation/Navbar";
 import GlassPanel from "@/components/ui/GlassPanel";
 import GlassButton from "@/components/ui/GlassButton";
 import PokemonCard from "@/components/pokemon/PokemonCard";
@@ -87,7 +86,6 @@ export default async function SetPage({ params }: SetPageProps) {
       <div className="soft-glow right-[-120px] top-[300px] h-80 w-80 bg-yellow-200/30" />
 
       <div className="relative mx-auto min-h-screen max-w-[1400px] px-5 py-4 sm:px-8 lg:px-10">
-        <Navbar />
 
         {/* Encabezado */}
         <section className="py-10 sm:py-14">
