@@ -69,14 +69,14 @@ const transitionStyles = `
   }
 
   .page-transition-entering {
-    animation-duration: 520ms;
-    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-duration: 760ms;
+    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
     animation-fill-mode: both;
   }
 
   .page-transition-leaving {
-    animation-duration: 280ms;
-    animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+    animation-duration: 420ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
     animation-fill-mode: both;
     pointer-events: none;
   }
@@ -98,46 +98,60 @@ const transitionStyles = `
   }
 
   @keyframes page-enter-from-right-controlled {
-    from {
+    0% {
       opacity: 0;
-      transform: translate3d(72px, 0, 0);
+      transform: translate3d(96px, 0, 0);
     }
-    to {
+
+    78% {
+      opacity: 1;
+      transform: translate3d(-7px, 0, 0);
+    }
+
+    100% {
       opacity: 1;
       transform: translate3d(0, 0, 0);
     }
   }
 
   @keyframes page-enter-from-left-controlled {
-    from {
+    0% {
       opacity: 0;
-      transform: translate3d(-72px, 0, 0);
+      transform: translate3d(-96px, 0, 0);
     }
-    to {
+
+    78% {
+      opacity: 1;
+      transform: translate3d(7px, 0, 0);
+    }
+
+    100% {
       opacity: 1;
       transform: translate3d(0, 0, 0);
     }
   }
 
   @keyframes page-leave-to-left-controlled {
-    from {
+    0% {
       opacity: 1;
       transform: translate3d(0, 0, 0);
     }
-    to {
+
+    100% {
       opacity: 0;
-      transform: translate3d(-32px, 0, 0);
+      transform: translate3d(-40px, 0, 0);
     }
   }
 
   @keyframes page-leave-to-right-controlled {
-    from {
+    0% {
       opacity: 1;
       transform: translate3d(0, 0, 0);
     }
-    to {
+
+    100% {
       opacity: 0;
-      transform: translate3d(32px, 0, 0);
+      transform: translate3d(40px, 0, 0);
     }
   }
 
@@ -200,7 +214,7 @@ export default function PageTransition({
       navigationTimeout.current = setTimeout(() => {
         navigationTimeout.current = null;
         router.push(destination);
-      }, 280);
+      }, 420);
     };
 
     document.addEventListener("click", handleClick);
