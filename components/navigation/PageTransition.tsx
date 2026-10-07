@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { setNavigationContext } from "./navigation-context";
 import { useEffect, useRef, useState } from "react";
 
 type Direction = "forward" | "backward";
@@ -194,6 +195,17 @@ export default function PageTransition({
     if (previousPathname.current === pathname) return;
 
     const currentSearch = window.location.search;
+    const currentParams = new URLSearchParams(currentSearch);
+    const currentSegments = pathname.split("/").filter(Boolean);
+
+    setNavigationContext(
+      pathname.startsWith("/sets/") &&
+        currentSegments.length >= 3 &&
+        currentParams.get("from") === "collection"
+        ? "collection"
+        : "default"
+    );
+
     const nextDirection = getDirection(
       previousPathname.current,
       pathname,
@@ -231,6 +243,16 @@ export default function PageTransition({
         url.search
       );
       const destination = url.pathname + url.search + url.hash;
+      const nextParams = new URLSearchParams(url.search);
+      const nextSegments = url.pathname.split("/").filter(Boolean);
+
+      setNavigationContext(
+        url.pathname.startsWith("/sets/") &&
+          nextSegments.length >= 3 &&
+          nextParams.get("from") === "collection"
+          ? "collection"
+          : "default"
+      );
 
       event.preventDefault();
 
