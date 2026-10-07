@@ -5,10 +5,16 @@ import { useEffect, useRef, useState } from "react";
 
 type Direction = "forward" | "backward";
 
-function getRouteInfo(pathname: string) {
+function getRouteInfo(pathname: string, search = "") {
   const clean = pathname.replace(/\/+$/, "") || "/";
   const segments = clean.split("/").filter(Boolean);
   const section = segments[0] ?? "home";
+  const params = new URLSearchParams(search);
+
+  const fromCollection =
+    section === "sets" &&
+    segments.length >= 3 &&
+    params.get("from") === "collection";
 
   const sectionOrder: Record<string, number> = {
     home: 0,
@@ -18,14 +24,19 @@ function getRouteInfo(pathname: string) {
   };
 
   return {
-    sectionOrder: sectionOrder[section] ?? 1,
+    sectionOrder: fromCollection ? sectionOrder.collection : sectionOrder[section] ?? 1,
     depth: segments.length,
   };
 }
 
-function getDirection(previousPath: string, nextPath: string): Direction {
-  const previous = getRouteInfo(previousPath);
-  const next = getRouteInfo(nextPath);
+function getDirection(
+  previousPath: string,
+  nextPath: string,
+  previousSearch = "",
+  nextSearch = ""
+): Direction {
+  const previous = getRouteInfo(previousPath, previousSearch);
+  const next = getRouteInfo(nextPath, nextSearch);
 
   if (previous.sectionOrder !== next.sectionOrder) {
     return next.sectionOrder > previous.sectionOrder ? "forward" : "backward";
@@ -57,7 +68,8 @@ function isInternalNavigation(event: MouseEvent, anchor: HTMLAnchorElement) {
 
   return (
     url.origin === window.location.origin &&
-    url.pathname !== window.location.pathname
+    (url.pathname !== window.location.pathname ||
+      url.search !== window.location.search)
   );
 }
 
@@ -172,6 +184,8 @@ export default function PageTransition({
   const router = useRouter();
 
   const previousPathname = useRef(pathname);
+  const previousSearch = useRef("");
+  const navigationFrame = useRef<number | null>(null);
 
   const [direction, setDirection] = useState<Direction>("forward");
   const [isLeaving, setIsLeaving] = useState(false);
@@ -180,16 +194,25 @@ export default function PageTransition({
   useEffect(() => {
     if (previousPathname.current === pathname) return;
 
-    const nextDirection = getDirection(previousPathname.current, pathname);
+    const currentSearch = window.location.search;
+    const nextDirection = getDirection(
+      previousPathname.current,
+      pathname,
+      previousSearch.current,
+      currentSearch
+    );
 
     setDirection(nextDirection);
     setIsLeaving(false);
     setTransitionKey((current) => current + 1);
 
     previousPathname.current = pathname;
+    previousSearch.current = currentSearch;
   }, [pathname]);
 
   useEffect(() => {
+    previousSearch.current = window.location.search;
+
     const handleClick = (event: MouseEvent) => {
       const target = event.target;
 
@@ -199,8 +222,15 @@ export default function PageTransition({
 
       if (!(anchor instanceof HTMLAnchorElement)) return;
       if (!isInternalNavigation(event, anchor)) return;
+      if (navigationFrame.current !== null) return;
+
       const url = new URL(anchor.href, window.location.href);
-      const nextDirection = getDirection(pathname, url.pathname);
+      const nextDirection = getDirection(
+        pathname,
+        url.pathname,
+        window.location.search,
+        url.search
+      );
       const destination = url.pathname + url.search + url.hash;
 
       event.preventDefault();
@@ -209,7 +239,13 @@ export default function PageTransition({
       setIsLeaving(true);
 
       router.prefetch(destination);
-      router.push(destination);
+
+      navigationFrame.current = requestAnimationFrame(() => {
+        navigationFrame.current = requestAnimationFrame(() => {
+          navigationFrame.current = null;
+          router.push(destination);
+        });
+      });
     };
 
     document.addEventListener("click", handleClick);
@@ -217,6 +253,10 @@ export default function PageTransition({
     return () => {
       document.removeEventListener("click", handleClick);
 
+      if (navigationFrame.current !== null) {
+        cancelAnimationFrame(navigationFrame.current);
+        navigationFrame.current = null;
+      }
     };
   }, [pathname, router]);
 
