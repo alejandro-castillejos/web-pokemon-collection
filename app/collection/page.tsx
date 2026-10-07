@@ -380,6 +380,7 @@ const currentCardSort: CardSortType =
                     image={card.image}
                     owned={true}
                     wishlist={wishlistCardIds.has(card.id)}
+                    basePath="/collection"
                   />
                 ))}
               </section>
