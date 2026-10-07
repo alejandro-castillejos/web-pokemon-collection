@@ -14,7 +14,11 @@ interface SetPageProps {
 export default async function SetPage({ params }: SetPageProps) {
   const { setId } = await params;
 
-  const set = await getSet(setId);
+  const supabase = await createClient();
+  const [set, authResult] = await Promise.all([
+    getSet(setId),
+    supabase.auth.getUser(),
+  ]);
 
   if (!set) {
     return (
@@ -44,11 +48,10 @@ export default async function SetPage({ params }: SetPageProps) {
   }
 
   const cards = set.cards ?? [];
-  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = authResult;
 
   const ownedCardIds = new Set<string>();
   const wishlistCardIds = new Set<string>();
