@@ -135,6 +135,7 @@ export default function SetDetailsPage({
                 image={card.image}
                 owned={ownedCardIds.has(card.id)}
                 wishlist={wishlistCardIds.has(card.id)}
+                basePath={basePath}
               />
             ))}
           </div>
