@@ -61,6 +61,94 @@ function isInternalNavigation(event: MouseEvent, anchor: HTMLAnchorElement) {
   );
 }
 
+const transitionStyles = `
+  .page-transition {
+    min-height: 100%;
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+  }
+
+  .page-transition-entering {
+    animation-duration: 520ms;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    animation-fill-mode: both;
+  }
+
+  .page-transition-leaving {
+    animation-duration: 280ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+    animation-fill-mode: both;
+    pointer-events: none;
+  }
+
+  .page-transition-forward.page-transition-entering {
+    animation-name: page-enter-from-right-controlled;
+  }
+
+  .page-transition-forward.page-transition-leaving {
+    animation-name: page-leave-to-left-controlled;
+  }
+
+  .page-transition-backward.page-transition-entering {
+    animation-name: page-enter-from-left-controlled;
+  }
+
+  .page-transition-backward.page-transition-leaving {
+    animation-name: page-leave-to-right-controlled;
+  }
+
+  @keyframes page-enter-from-right-controlled {
+    from {
+      opacity: 0;
+      transform: translate3d(72px, 0, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes page-enter-from-left-controlled {
+    from {
+      opacity: 0;
+      transform: translate3d(-72px, 0, 0);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes page-leave-to-left-controlled {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(-32px, 0, 0);
+    }
+  }
+
+  @keyframes page-leave-to-right-controlled {
+    from {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      opacity: 0;
+      transform: translate3d(32px, 0, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .page-transition-entering,
+    .page-transition-leaving {
+      animation-duration: 1ms;
+    }
+  }
+`;
+
 export default function PageTransition({
   children,
 }: {
@@ -136,8 +224,11 @@ export default function PageTransition({
   ].join(" ");
 
   return (
-    <div key={transitionKey} className={transitionClass}>
-      {children}
-    </div>
+    <>
+      <style>{transitionStyles}</style>
+      <div key={transitionKey} className={transitionClass}>
+        {children}
+      </div>
+    </>
   );
 }
