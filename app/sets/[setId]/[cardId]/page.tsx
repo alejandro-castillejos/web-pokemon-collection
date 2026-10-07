@@ -38,29 +38,27 @@ export default async function CardPage({
   } = await supabase.auth.getUser();
 
   let owned = false;
-
-  if (user) {
-    const { data: collectionItem } = await supabase
-      .from("collection")
-      .select("card_id")
-      .eq("user_id", user.id)
-      .eq("card_id", cardId)
-      .maybeSingle();
-
-    owned = !!collectionItem;
-  }
-
   let wishlist = false;
 
   if (user) {
-    const { data: wishlistItem } = await supabase
-      .from("wishlist")
-      .select("card_id")
-      .eq("user_id", user.id)
-      .eq("card_id", cardId)
-      .maybeSingle();
+    const [collectionResult, wishlistResult] = await Promise.all([
+      supabase
+        .from("collection")
+        .select("card_id")
+        .eq("user_id", user.id)
+        .eq("card_id", cardId)
+        .maybeSingle(),
 
-    wishlist = !!wishlistItem;
+      supabase
+        .from("wishlist")
+        .select("card_id")
+        .eq("user_id", user.id)
+        .eq("card_id", cardId)
+        .maybeSingle(),
+    ]);
+
+    owned = !!collectionResult.data;
+    wishlist = !!wishlistResult.data;
   }
 
   if (!set || !card) {
@@ -83,7 +81,7 @@ export default async function CardPage({
             href={fromCollection ? "/collection?view=cards" : `/sets/${setId}`}
             className="mt-6 inline-flex rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
           >
-            Volver al set
+            {fromCollection ? "Volver a colección" : "Volver al set"}
           </Link>
         </GlassPanel>
       </main>
