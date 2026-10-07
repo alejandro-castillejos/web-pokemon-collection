@@ -11,14 +11,27 @@ interface CardPageProps {
     setId: string;
     cardId: string;
   }>;
+  searchParams: Promise<{
+    from?: string;
+  }>;
 }
 
-export default async function CardPage({ params }: CardPageProps) {
-  const { setId, cardId } = await params;
+export default async function CardPage({
+  params,
+  searchParams,
+}: CardPageProps) {
+  const [{ setId, cardId }, query] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
-  const set = await getSet(setId);
-  const card = await getCard(cardId);
+  const fromCollection = query.from === "collection";
+
   const supabase = await createClient();
+  const [set, card] = await Promise.all([
+    getSet(setId),
+    getCard(cardId),
+  ]);
 
   const {
     data: { user },
@@ -67,7 +80,7 @@ export default async function CardPage({ params }: CardPageProps) {
           </p>
 
           <Link
-            href={`/sets/${setId}`}
+            href={fromCollection ? "/collection?view=cards" : `/sets/${setId}`}
             className="mt-6 inline-flex rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
           >
             Volver al set
@@ -91,16 +104,20 @@ export default async function CardPage({ params }: CardPageProps) {
           {/* Navegación */}
           <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
             <Link
-              href="/sets"
+              href={fromCollection ? "/collection?view=cards" : "/sets"}
               className="transition hover:text-zinc-900"
             >
-              Sets
+              {fromCollection ? "Colección" : "Sets"}
             </Link>
 
             <span>/</span>
 
             <Link
-              href={`/sets/${setId}`}
+              href={
+                fromCollection
+                  ? "/collection?view=sets"
+                  : `/sets/${setId}`
+              }
               className="transition hover:text-zinc-900"
             >
               {set.name}
