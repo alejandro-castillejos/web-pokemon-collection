@@ -1,21 +1,15 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { setNavigationContext } from "./navigation-context";
 import { useEffect, useRef, useState } from "react";
 
 type Direction = "forward" | "backward";
+type Phase = "idle" | "covering" | "revealing";
 
-function getRouteInfo(pathname: string, search = "") {
+function getRouteInfo(pathname: string) {
   const clean = pathname.replace(/\/+$/, "") || "/";
   const segments = clean.split("/").filter(Boolean);
   const section = segments[0] ?? "home";
-  const params = new URLSearchParams(search);
-
-  const fromCollection =
-    section === "sets" &&
-    segments.length >= 3 &&
-    params.get("from") === "collection";
 
   const sectionOrder: Record<string, number> = {
     home: 0,
@@ -25,19 +19,14 @@ function getRouteInfo(pathname: string, search = "") {
   };
 
   return {
-    sectionOrder: fromCollection ? sectionOrder.collection : sectionOrder[section] ?? 1,
+    sectionOrder: sectionOrder[section] ?? 1,
     depth: segments.length,
   };
 }
 
-function getDirection(
-  previousPath: string,
-  nextPath: string,
-  previousSearch = "",
-  nextSearch = ""
-): Direction {
-  const previous = getRouteInfo(previousPath, previousSearch);
-  const next = getRouteInfo(nextPath, nextSearch);
+function getDirection(previousPath: string, nextPath: string): Direction {
+  const previous = getRouteInfo(previousPath);
+  const next = getRouteInfo(nextPath);
 
   if (previous.sectionOrder !== next.sectionOrder) {
     return next.sectionOrder > previous.sectionOrder ? "forward" : "backward";
@@ -58,207 +47,95 @@ function isInternalNavigation(event: MouseEvent, anchor: HTMLAnchorElement) {
     event.ctrlKey ||
     event.shiftKey ||
     event.altKey
-  ) {
-    return false;
-  }
+  ) return false;
 
   if (anchor.target && anchor.target !== "_self") return false;
   if (anchor.hasAttribute("download")) return false;
 
   const url = new URL(anchor.href, window.location.href);
-
-  return (
-    url.origin === window.location.origin &&
-    url.pathname !== window.location.pathname
-  );
+  return url.origin === window.location.origin &&
+    url.pathname !== window.location.pathname;
 }
 
 const transitionStyles = `
-  .page-transition {
-    min-height: 100%;
-    will-change: transform, opacity;
-    backface-visibility: hidden;
+  .page-transition { position: relative; min-height: 100%; }
+  .page-transition-content { min-height: 100%; will-change: transform, opacity; backface-visibility: hidden; }
+  .page-transition-content.reveal-forward { animation: page-reveal-forward 520ms cubic-bezier(0.22,1,0.36,1) both; }
+  .page-transition-content.reveal-backward { animation: page-reveal-backward 520ms cubic-bezier(0.22,1,0.36,1) both; }
+  .page-transition-cover {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    pointer-events: all;
+    background: #fff;
   }
-
-  .page-transition-entering {
-    animation-duration: 760ms;
-    animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-    animation-fill-mode: both;
+  .page-transition-cover.revealing {
+    animation: page-cover-reveal 460ms cubic-bezier(0.22,1,0.36,1) forwards;
   }
-
-  .page-transition-leaving {
-    animation-duration: 420ms;
-    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
-    animation-fill-mode: both;
-    pointer-events: none;
+  @keyframes page-reveal-forward {
+    from { opacity: 0; transform: translate3d(72px,0,0); }
+    to { opacity: 1; transform: translate3d(0,0,0); }
   }
-
-  .page-transition-forward.page-transition-entering {
-    animation-name: page-enter-from-right-controlled;
+  @keyframes page-reveal-backward {
+    from { opacity: 0; transform: translate3d(-72px,0,0); }
+    to { opacity: 1; transform: translate3d(0,0,0); }
   }
-
-  .page-transition-forward.page-transition-leaving {
-    animation-name: page-leave-to-left-controlled;
+  @keyframes page-cover-reveal {
+    from { opacity: 1; visibility: visible; }
+    to { opacity: 0; visibility: hidden; }
   }
-
-  .page-transition-backward.page-transition-entering {
-    animation-name: page-enter-from-left-controlled;
-  }
-
-  .page-transition-backward.page-transition-leaving {
-    animation-name: page-leave-to-right-controlled;
-  }
-
-  @keyframes page-enter-from-right-controlled {
-    0% {
-      opacity: 0;
-      transform: translate3d(120px, 0, 0);
-    }
-
-    78% {
-      opacity: 1;
-      transform: translate3d(-8px, 0, 0);
-    }
-
-    100% {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-  }
-
-  @keyframes page-enter-from-left-controlled {
-    0% {
-      opacity: 0;
-      transform: translate3d(-120px, 0, 0);
-    }
-
-    78% {
-      opacity: 1;
-      transform: translate3d(8px, 0, 0);
-    }
-
-    100% {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-  }
-
-  @keyframes page-leave-to-left-controlled {
-    0% {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translate3d(-120px, 0, 0);
-    }
-  }
-
-  @keyframes page-leave-to-right-controlled {
-    0% {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translate3d(120px, 0, 0);
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    .page-transition-entering,
-    .page-transition-leaving {
-      animation-duration: 1ms;
-    }
+    .page-transition-content.reveal-forward,
+    .page-transition-content.reveal-backward,
+    .page-transition-cover.revealing { animation-duration: 1ms; }
   }
 `;
 
-export default function PageTransition({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PageTransition({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-
   const previousPathname = useRef(pathname);
-  const previousSearch = useRef("");
   const navigationFrame = useRef<number | null>(null);
+  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [direction, setDirection] = useState<Direction>("forward");
-  const [isLeaving, setIsLeaving] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
   const [transitionKey, setTransitionKey] = useState(0);
 
   useEffect(() => {
     if (previousPathname.current === pathname) return;
 
-    const currentSearch = window.location.search;
-    const currentParams = new URLSearchParams(currentSearch);
-    const currentSegments = pathname.split("/").filter(Boolean);
-
-    setNavigationContext(
-      pathname.startsWith("/sets/") &&
-        currentSegments.length >= 3 &&
-        currentParams.get("from") === "collection"
-        ? "collection"
-        : "default"
-    );
-
-    const nextDirection = getDirection(
-      previousPathname.current,
-      pathname,
-      previousSearch.current,
-      currentSearch
-    );
-
+    const nextDirection = getDirection(previousPathname.current, pathname);
     setDirection(nextDirection);
-    setIsLeaving(false);
-    setTransitionKey((current) => current + 1);
+    setTransitionKey((value) => value + 1);
+    setPhase("revealing");
+
+    if (revealTimer.current !== null) clearTimeout(revealTimer.current);
+    revealTimer.current = setTimeout(() => {
+      setPhase("idle");
+      revealTimer.current = null;
+    }, 470);
 
     previousPathname.current = pathname;
-    previousSearch.current = currentSearch;
   }, [pathname]);
 
   useEffect(() => {
-    previousSearch.current = window.location.search;
-
     const handleClick = (event: MouseEvent) => {
       const target = event.target;
-
       if (!(target instanceof Element)) return;
 
       const anchor = target.closest("a");
-
       if (!(anchor instanceof HTMLAnchorElement)) return;
       if (!isInternalNavigation(event, anchor)) return;
       if (navigationFrame.current !== null) return;
 
       const url = new URL(anchor.href, window.location.href);
-      const nextDirection = getDirection(
-        pathname,
-        url.pathname,
-        window.location.search,
-        url.search
-      );
+      const nextDirection = getDirection(pathname, url.pathname);
       const destination = url.pathname + url.search + url.hash;
-      const nextParams = new URLSearchParams(url.search);
-      const nextSegments = url.pathname.split("/").filter(Boolean);
-
-      setNavigationContext(
-        url.pathname.startsWith("/sets/") &&
-          nextSegments.length >= 3 &&
-          nextParams.get("from") === "collection"
-          ? "collection"
-          : "default"
-      );
 
       event.preventDefault();
-
       setDirection(nextDirection);
-      setIsLeaving(true);
-
+      setPhase("covering");
       router.prefetch(destination);
 
       navigationFrame.current = requestAnimationFrame(() => {
@@ -273,7 +150,6 @@ export default function PageTransition({
 
     return () => {
       document.removeEventListener("click", handleClick);
-
       if (navigationFrame.current !== null) {
         cancelAnimationFrame(navigationFrame.current);
         navigationFrame.current = null;
@@ -281,19 +157,24 @@ export default function PageTransition({
     };
   }, [pathname, router]);
 
-  const transitionClass = [
-    "page-transition",
-    isLeaving ? "page-transition-leaving" : "page-transition-entering",
-    direction === "forward"
-      ? "page-transition-forward"
-      : "page-transition-backward",
-  ].join(" ");
+  const revealClass =
+    phase === "revealing"
+      ? direction === "forward" ? "reveal-forward" : "reveal-backward"
+      : "";
 
   return (
     <>
       <style>{transitionStyles}</style>
-      <div key={transitionKey} className={transitionClass}>
-        {children}
+      <div className="page-transition">
+        <div key={transitionKey} className={`page-transition-content ${revealClass}`}>
+          {children}
+        </div>
+        {phase !== "idle" && (
+          <div
+            className={`page-transition-cover ${phase === "revealing" ? "revealing" : ""}`}
+            aria-hidden="true"
+          />
+        )}
       </div>
     </>
   );
