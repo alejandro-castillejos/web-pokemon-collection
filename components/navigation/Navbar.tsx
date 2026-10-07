@@ -1,14 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const fromCollection =
+    pathname.startsWith("/sets/") &&
+    pathname.split("/").filter(Boolean).length >= 3 &&
+    searchParams.get("from") === "collection";
 
   const isHome = pathname === "/";
-  const isSets = pathname.startsWith("/sets");
-  const isCollection = pathname.startsWith("/collection");
+  const isSets = pathname.startsWith("/sets") && !fromCollection;
+  const isCollection = pathname.startsWith("/collection") || fromCollection;
   const isWishlist = pathname.startsWith("/wishlist");
 
   let searchPlaceholder = "Buscar cartas, sets...";
