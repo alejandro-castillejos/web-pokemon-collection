@@ -381,6 +381,7 @@ const currentCardSort: CardSortType =
                     image={card.image}
                     owned={true}
                     wishlist={wishlistCardIds.has(card.id)}
+                    navigationContext="collection"
                   />
                 ))}
               </section>
