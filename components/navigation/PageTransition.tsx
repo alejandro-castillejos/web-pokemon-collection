@@ -68,8 +68,7 @@ function isInternalNavigation(event: MouseEvent, anchor: HTMLAnchorElement) {
 
   return (
     url.origin === window.location.origin &&
-    (url.pathname !== window.location.pathname ||
-      url.search !== window.location.search)
+    url.pathname !== window.location.pathname
   );
 }
 
