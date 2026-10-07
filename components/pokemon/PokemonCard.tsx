@@ -11,7 +11,6 @@ interface PokemonCardProps {
   image?: string;
   owned?: boolean;
   wishlist?: boolean;
-  navigationContext?: "collection";
 }
 
 export default function PokemonCard({
@@ -22,15 +21,10 @@ export default function PokemonCard({
   image,
   owned = false,
   wishlist = false,
-  navigationContext,
 }: PokemonCardProps) {
   return (
     <GlassPanel className="group overflow-hidden rounded-[24px] p-3 transition duration-200 hover:-translate-y-1">
-      {/* Área de la carta */}
-      <Link
-        href={`/sets/${setId}/${cardId}${navigationContext === "collection" ? "?from=collection" : ""}`}
-        className="block"
-      >
+      <Link href={`/sets/${setId}/${cardId}`} className="block">
         <div className="relative overflow-hidden rounded-[18px] bg-zinc-100">
           <CardImage
             src={image}
@@ -41,25 +35,15 @@ export default function PokemonCard({
             className="block w-full transition duration-300 group-hover:scale-[1.02]"
           />
         </div>
-
-        {/* Información */}
         <div className="px-1 pb-1 pt-4">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-zinc-900">
-                {name}
-              </p>
-
-              <p className="mt-1 text-xs text-zinc-400">
-                #{number}
-              </p>
+              <p className="truncate text-sm font-bold text-zinc-900">{name}</p>
+              <p className="mt-1 text-xs text-zinc-400">#{number}</p>
             </div>
-
-            </div>
+          </div>
         </div>
       </Link>
-
-      {/* Acciones */}
       <div className="flex justify-end px-1 pb-1 pt-2">
         <CardActionButtons
           cardId={cardId}
