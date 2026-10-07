@@ -100,12 +100,12 @@ const transitionStyles = `
   @keyframes page-enter-from-right-controlled {
     0% {
       opacity: 0;
-      transform: translate3d(96px, 0, 0);
+      transform: translate3d(120px, 0, 0);
     }
 
     78% {
       opacity: 1;
-      transform: translate3d(-7px, 0, 0);
+      transform: translate3d(-8px, 0, 0);
     }
 
     100% {
@@ -117,12 +117,12 @@ const transitionStyles = `
   @keyframes page-enter-from-left-controlled {
     0% {
       opacity: 0;
-      transform: translate3d(-96px, 0, 0);
+      transform: translate3d(-120px, 0, 0);
     }
 
     78% {
       opacity: 1;
-      transform: translate3d(7px, 0, 0);
+      transform: translate3d(8px, 0, 0);
     }
 
     100% {
@@ -139,7 +139,7 @@ const transitionStyles = `
 
     100% {
       opacity: 0;
-      transform: translate3d(-40px, 0, 0);
+      transform: translate3d(-120px, 0, 0);
     }
   }
 
@@ -151,7 +151,7 @@ const transitionStyles = `
 
     100% {
       opacity: 0;
-      transform: translate3d(40px, 0, 0);
+      transform: translate3d(120px, 0, 0);
     }
   }
 
@@ -211,10 +211,12 @@ export default function PageTransition({
       setDirection(nextDirection);
       setIsLeaving(true);
 
+      router.prefetch(destination);
+
       navigationTimeout.current = setTimeout(() => {
         navigationTimeout.current = null;
         router.push(destination);
-      }, 420);
+      }, 80);
     };
 
     document.addEventListener("click", handleClick);
