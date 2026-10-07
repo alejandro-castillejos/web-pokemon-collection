@@ -172,7 +172,6 @@ export default function PageTransition({
   const router = useRouter();
 
   const previousPathname = useRef(pathname);
-  const navigationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [direction, setDirection] = useState<Direction>("forward");
   const [isLeaving, setIsLeaving] = useState(false);
@@ -200,8 +199,6 @@ export default function PageTransition({
 
       if (!(anchor instanceof HTMLAnchorElement)) return;
       if (!isInternalNavigation(event, anchor)) return;
-      if (navigationTimeout.current) return;
-
       const url = new URL(anchor.href, window.location.href);
       const nextDirection = getDirection(pathname, url.pathname);
       const destination = url.pathname + url.search + url.hash;
@@ -212,11 +209,7 @@ export default function PageTransition({
       setIsLeaving(true);
 
       router.prefetch(destination);
-
-      navigationTimeout.current = setTimeout(() => {
-        navigationTimeout.current = null;
-        router.push(destination);
-      }, 80);
+      router.push(destination);
     };
 
     document.addEventListener("click", handleClick);
@@ -224,10 +217,6 @@ export default function PageTransition({
     return () => {
       document.removeEventListener("click", handleClick);
 
-      if (navigationTimeout.current) {
-        clearTimeout(navigationTimeout.current);
-        navigationTimeout.current = null;
-      }
     };
   }, [pathname, router]);
 
