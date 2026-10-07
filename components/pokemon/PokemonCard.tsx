@@ -11,6 +11,7 @@ interface PokemonCardProps {
   image?: string;
   owned?: boolean;
   wishlist?: boolean;
+  basePath?: "/sets" | "/collection";
 }
 
 export default function PokemonCard({
@@ -21,10 +22,11 @@ export default function PokemonCard({
   image,
   owned = false,
   wishlist = false,
+  basePath = "/sets",
 }: PokemonCardProps) {
   return (
     <GlassPanel className="group overflow-hidden rounded-[24px] p-3 transition duration-200 hover:-translate-y-1">
-      <Link href={`/sets/${setId}/${cardId}`} className="block">
+      <Link href={`${basePath}/${setId}/${cardId}`} className="block">
         <div className="relative overflow-hidden rounded-[18px] bg-zinc-100">
           <CardImage
             src={image}
