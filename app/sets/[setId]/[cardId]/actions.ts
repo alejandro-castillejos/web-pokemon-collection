@@ -52,6 +52,8 @@ export async function toggleCollection(
     }
 
     revalidatePath(`/sets/${setId}/${cardId}`);
+  revalidatePath(`/collection/${setId}/${cardId}`);
+    revalidatePath(`/collection/${setId}/${cardId}`);
 
     return {
       success: true,
