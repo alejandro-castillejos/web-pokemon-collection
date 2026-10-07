@@ -70,9 +70,10 @@ export default function PageTransition({
   const router = useRouter();
 
   const previousPathname = useRef(pathname);
-  const pendingTransition = useRef<(() => void) | null>(null);
+  const navigationTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [direction, setDirection] = useState<Direction>("forward");
+  const [isLeaving, setIsLeaving] = useState(false);
   const [transitionKey, setTransitionKey] = useState(0);
 
   useEffect(() => {
@@ -81,13 +82,10 @@ export default function PageTransition({
     const nextDirection = getDirection(previousPathname.current, pathname);
 
     setDirection(nextDirection);
-    document.documentElement.dataset.transitionDirection = nextDirection;
-
-    previousPathname.current = pathname;
+    setIsLeaving(false);
     setTransitionKey((current) => current + 1);
 
-    pendingTransition.current?.();
-    pendingTransition.current = null;
+    previousPathname.current = pathname;
   }, [pathname]);
 
   useEffect(() => {
@@ -100,48 +98,45 @@ export default function PageTransition({
 
       if (!(anchor instanceof HTMLAnchorElement)) return;
       if (!isInternalNavigation(event, anchor)) return;
+      if (navigationTimeout.current) return;
 
       const url = new URL(anchor.href, window.location.href);
       const nextDirection = getDirection(pathname, url.pathname);
+      const destination = url.pathname + url.search + url.hash;
 
       event.preventDefault();
 
       setDirection(nextDirection);
-      document.documentElement.dataset.transitionDirection = nextDirection;
+      setIsLeaving(true);
 
-      const startTransition = (
-        document as Document & {
-          startViewTransition?: (
-            callback: () => void | Promise<void>
-          ) => { finished: Promise<void> };
-        }
-      ).startViewTransition;
-
-      const destination = `${url.pathname}${url.search}${url.hash}`;
-
-      if (!startTransition) {
+      navigationTimeout.current = setTimeout(() => {
+        navigationTimeout.current = null;
         router.push(destination);
-        return;
-      }
-
-      startTransition(() => {
-        router.push(destination);
-
-        return new Promise<void>((resolve) => {
-          pendingTransition.current = resolve;
-        });
-      });
+      }, 280);
     };
 
     document.addEventListener("click", handleClick);
 
     return () => {
       document.removeEventListener("click", handleClick);
+
+      if (navigationTimeout.current) {
+        clearTimeout(navigationTimeout.current);
+        navigationTimeout.current = null;
+      }
     };
   }, [pathname, router]);
 
+  const transitionClass = [
+    "page-transition",
+    isLeaving ? "page-transition-leaving" : "page-transition-entering",
+    direction === "forward"
+      ? "page-transition-forward"
+      : "page-transition-backward",
+  ].join(" ");
+
   return (
-    <div key={transitionKey} className="page-transition">
+    <div key={transitionKey} className={transitionClass}>
       {children}
     </div>
   );
