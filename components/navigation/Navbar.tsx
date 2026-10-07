@@ -1,16 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
+import {
+  getNavigationContext,
+  getServerNavigationContext,
+  subscribeNavigationContext,
+} from "./navigation-context";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const navigationContext = useSyncExternalStore(
+    subscribeNavigationContext,
+    getNavigationContext,
+    getServerNavigationContext
+  );
 
   const fromCollection =
     pathname.startsWith("/sets/") &&
     pathname.split("/").filter(Boolean).length >= 3 &&
-    searchParams.get("from") === "collection";
+    navigationContext === "collection";
 
   const isHome = pathname === "/";
   const isSets = pathname.startsWith("/sets") && !fromCollection;
