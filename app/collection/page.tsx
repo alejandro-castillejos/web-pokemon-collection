@@ -71,28 +71,27 @@ const currentCardSort: CardSortType =
     );
   }
 
-  // Obtener las cartas guardadas por el usuario.
-  const { data: collectionRows, error: collectionError } =
-    await supabase
+  // La colección y los sets son independientes, así que se obtienen en paralelo.
+  const [collectionResult, sets] = await Promise.all([
+    supabase
       .from("collection")
-      .select("card_id");
+      .select("card_id"),
+    getAllSets(
+      currentSort === "progress" ? "recent" : currentSort
+    ),
+  ]);
 
-  if (collectionError) {
+  if (collectionResult.error) {
     throw new Error(
-      `Error obteniendo la colección: ${collectionError.message}`
+      `Error obteniendo la colección: ${collectionResult.error.message}`
     );
   }
 
   const ownedCardIds = new Set(
-    collectionRows?.map((row) => row.card_id) ?? []
+    collectionResult.data?.map((row) => row.card_id) ?? []
   );
 
   const totalCards = ownedCardIds.size;
-
-  // Obtener los sets.
-  const sets = await getAllSets(
-    currentSort === "progress" ? "recent" : currentSort
-  );
 
   // Agrupar cartas por set.
   const ownedBySet = new Map<string, number>();
