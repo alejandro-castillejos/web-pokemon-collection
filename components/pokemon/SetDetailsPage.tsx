@@ -85,7 +85,12 @@ export default function SetDetailsPage({
               <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/5">
                 <div
                   className="h-full rounded-full bg-[#f2c72e]"
-                  style={{ width: `${progress}%` }}
+                  style={{
+                    width:
+                      owned > 0
+                        ? `${Math.max(progress, 3)}%`
+                        : "0%",
+                  }}
                 />
               </div>
 
