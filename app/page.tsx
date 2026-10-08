@@ -1,40 +1,133 @@
-import GlassButton from "@/components/ui/GlassButton";
+import Link from "next/link";
+
 import GlassPanel from "@/components/ui/GlassPanel";
+import CardImage from "@/components/pokemon/CardImage";
 
-const stats = [
-  {
-    label: "Sets",
-    value: "12",
-  },
-  {
-    label: "Cartas",
-    value: "348",
-  },
-  {
-    label: "Completado",
-    value: "38%",
-  },
-];
+import {
+  getAllSets,
+  getCard,
+  getSet,
+  getSetIdFromCardId,
+} from "@/lib/tcgdex";
 
-const recentCards = [
-  {
-    name: "Pikachu ex",
-    set: "Surging Sparks",
-    status: "Nueva",
-  },
-  {
-    name: "Charizard ex",
-    set: "Scarlet & Violet—151",
-    status: "Nueva",
-  },
-  {
-    name: "Umbreon ex",
-    set: "Prismatic Evolutions",
-    status: "Nueva",
-  },
-];
+import { createClient } from "@/lib/supabase/server";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: collectionRows, error: collectionError } = user
+    ? await supabase
+        .from("collection")
+        .select("card_id, created_at")
+        .order("created_at", { ascending: false })
+    : { data: [], error: null };
+
+  if (collectionError) {
+    throw new Error(
+      `Error obteniendo la colección: ${collectionError.message}`
+    );
+  }
+
+  const collection = collectionRows ?? [];
+  const totalCards = collection.length;
+
+  let stats = {
+    sets: 0,
+    cards: totalCards,
+    progress: 0,
+  };
+
+  let recentCards: Array<{
+    id: string;
+    setId: string;
+    name: string;
+    setName: string;
+    image?: string;
+  }> = [];
+
+  if (totalCards > 0) {
+    const sets = await getAllSets("recent");
+
+    const setIds = new Set(sets.map((set) => set.id));
+    const ownedBySet = new Map<string, number>();
+
+    for (const row of collection) {
+      const setId = getSetIdFromCardId(row.card_id);
+
+      ownedBySet.set(
+        setId,
+        (ownedBySet.get(setId) ?? 0) + 1
+      );
+    }
+
+    const totalCatalogCards = sets.reduce(
+      (total, set) => total + set.cardCount.total,
+      0
+    );
+
+    const ownedSetCount = [...ownedBySet.keys()].filter((setId) =>
+      setIds.has(setId)
+    ).length;
+
+    const progress =
+      totalCatalogCards > 0
+        ? Math.round(
+            (totalCards / totalCatalogCards) * 100
+          )
+        : 0;
+
+    stats = {
+      sets: ownedSetCount,
+      cards: totalCards,
+      progress,
+    };
+
+    const latestRows = collection.slice(0, 3);
+
+    const resolvedRecentCards = await Promise.all(
+      latestRows.map(async (row) => {
+        try {
+          const setId = getSetIdFromCardId(row.card_id);
+
+          const [card, set] = await Promise.all([
+            getCard(row.card_id),
+            getSet(setId),
+          ]);
+
+          if (!card || !set) {
+            return null;
+          }
+
+          return {
+            id: card.id,
+            setId,
+            name: card.name,
+            setName: set.name,
+            image: card.image,
+          };
+        } catch {
+          return null;
+        }
+      })
+    );
+
+    recentCards = resolvedRecentCards.filter(
+      (
+        card
+      ): card is {
+        id: string;
+        setId: string;
+        name: string;
+        setName: string;
+        image?: string;
+      } => card !== null
+    );
+  }
+
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
       {/* Iluminación ambiental */}
@@ -43,7 +136,6 @@ export default function Home() {
       <div className="soft-glow bottom-[80px] left-[40%] h-72 w-72 bg-emerald-200/20" />
 
       <div className="relative mx-auto flex min-h-screen max-w-[1400px] flex-col px-5 py-4 sm:px-8 lg:px-10">
-        
         {/* HERO */}
         <section className="grid flex-1 items-center gap-10 py-14 lg:grid-cols-[1.45fr_0.7fr] lg:py-20">
           <div>
@@ -64,45 +156,67 @@ export default function Home() {
               recorrido por el mundo de Pokémon TCG.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-3">
-              <GlassButton variant="primary" href="/sets">
-                <span className="mr-2 text-base">◉</span>
-                Explorar sets
-                <span className="ml-2 text-base">→</span>
-              </GlassButton>
+            {totalCards === 0 ? (
+              <GlassPanel
+                strong
+                className="mt-8 max-w-2xl rounded-[28px] p-6 sm:p-7"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                  {user ? "Tu colección" : "Comienza aquí"}
+                </p>
 
-              <GlassButton>
-                <span className="mr-2 text-base">▣</span>
-                Mi colección
-              </GlassButton>
-            </div>
+                <h2 className="mt-2 text-2xl font-bold tracking-tight text-zinc-900">
+                  Comienza tu colección
+                </h2>
 
-            {/* ESTADÍSTICAS */}
-            <GlassPanel className="mt-8 flex max-w-2xl overflow-hidden rounded-[24px]">
-              {stats.map((stat, index) => (
-                <div
-                  key={stat.label}
-                  className={`flex flex-1 items-center gap-3 px-5 py-4 ${
-                    index !== stats.length - 1
-                      ? "border-r border-black/5"
-                      : ""
-                  }`}
+                <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-500">
+                  Explora los sets disponibles, agrega las cartas que tienes y
+                  comienza a seguir tu progreso.
+                </p>
+
+                <Link
+                  href="/sets"
+                  className="yellow-button mt-5 inline-flex rounded-full px-5 py-2.5 text-sm font-semibold"
                 >
-                  <div className="hidden h-10 w-10 items-center justify-center rounded-2xl bg-black/5 text-lg sm:flex">
-                    {index === 0 ? "≋" : index === 1 ? "▤" : "◌"}
-                  </div>
+                  Explorar sets
+                  <span className="ml-2">→</span>
+                </Link>
+              </GlassPanel>
+            ) : (
+              <GlassPanel className="mt-8 flex max-w-2xl overflow-hidden rounded-[24px]">
+                {[
+                  { label: "Sets", value: String(stats.sets), icon: "≋" },
+                  { label: "Cartas", value: String(stats.cards), icon: "▤" },
+                  {
+                    label: "Completado",
+                    value: `${stats.progress}%`,
+                    icon: "◌",
+                  },
+                ].map((stat, index, allStats) => (
+                  <div
+                    key={stat.label}
+                    className={`flex flex-1 items-center gap-3 px-5 py-4 ${
+                      index !== allStats.length - 1
+                        ? "border-r border-black/5"
+                        : ""
+                    }`}
+                  >
+                    <div className="hidden h-10 w-10 items-center justify-center rounded-2xl bg-black/5 text-lg sm:flex">
+                      {stat.icon}
+                    </div>
 
-                  <div>
-                    <p className="text-lg font-bold leading-none sm:text-2xl">
-                      {stat.value}
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-500">
-                      {stat.label}
-                    </p>
+                    <div>
+                      <p className="text-lg font-bold leading-none sm:text-2xl">
+                        {stat.value}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {stat.label}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </GlassPanel>
+                ))}
+              </GlassPanel>
+            )}
           </div>
 
           {/* ÚLTIMOS AÑADIDOS */}
@@ -126,38 +240,59 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              {recentCards.map((card) => (
-                <div
-                  key={card.name}
-                  className="glass-hover flex items-center gap-3 rounded-2xl border border-black/5 bg-white/45 p-3"
-                >
-                  <div className="h-14 w-11 shrink-0 rounded-xl bg-gradient-to-br from-zinc-200 to-zinc-100 shadow-inner" />
+            {recentCards.length > 0 ? (
+              <div className="space-y-3">
+                {recentCards.map((card) => (
+                  <Link
+                    key={card.id}
+                    href={`/collection/${card.setId}/${card.id}`}
+                    className="glass-hover flex items-center gap-3 rounded-2xl border border-black/5 bg-white/45 p-3"
+                  >
+                    <div className="h-14 w-11 shrink-0 overflow-hidden rounded-xl bg-zinc-100 shadow-inner">
+                      <CardImage
+                        src={card.image}
+                        alt={card.name}
+                        name={card.name}
+                        number=""
+                        quality="low"
+                        className="block h-full w-full object-cover"
+                      />
+                    </div>
 
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-[#111111]">
-                      {card.name}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-[#111111]">
+                        {card.name}
+                      </p>
 
-                    <p className="mt-1 truncate text-xs text-zinc-500">
-                      {card.set}
-                    </p>
-                  </div>
+                      <p className="mt-1 truncate text-xs text-zinc-500">
+                        {card.setName}
+                      </p>
+                    </div>
 
-                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                    {card.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+                    <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                      Añadida
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-black/5 bg-white/45 p-6 text-center">
+                <p className="text-sm font-semibold text-zinc-700">
+                  Aún no has añadido cartas
+                </p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">
+                  Tus últimas cartas aparecerán aquí.
+                </p>
+              </div>
+            )}
 
-            <button
-              type="button"
+            <Link
+              href="/collection"
               className="mt-5 flex w-full items-center justify-center rounded-2xl py-3 text-sm font-semibold text-zinc-800 transition hover:bg-black/5"
             >
               Ver colección
               <span className="ml-2">→</span>
-            </button>
+            </Link>
           </GlassPanel>
         </section>
 
