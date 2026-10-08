@@ -45,15 +45,15 @@ export default function SetDetailsPage({
 
           <div className="mt-1 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-              <div className="mb-5 flex h-20 items-center">
-                {set.logo ? (
+              {set.logo ? (
+                <div className="mb-5 flex h-20 items-center">
                   <img
                     src={`${set.logo}.webp`}
                     alt={`Logo de ${set.name}`}
                     className="max-h-20 max-w-xs object-contain"
                   />
-                ) : null}
-              </div>
+                </div>
+              ) : null}
 
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
                 {set.id}
