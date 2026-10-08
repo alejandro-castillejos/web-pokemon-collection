@@ -63,6 +63,6 @@ export async function signup(formData: FormData) {
   revalidatePath("/", "layout");
 
   redirect(
-    "/login?message=Cuenta creada. Revisa tu correo para confirmar tu cuenta."
+    "/login?status=signup&message=Revisa tu correo para confirmar tu cuenta."
   );
 }
