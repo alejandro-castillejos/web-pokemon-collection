@@ -51,9 +51,10 @@ export default function SetDetailsPage({
   }
 
   const owned = ownedCardIds.size;
+  const displayedCount = isWishlist ? wishlistCards.length : owned;
   const progress =
     set.cardCount.total > 0
-      ? Math.round((owned / set.cardCount.total) * 100)
+      ? Math.round((displayedCount / set.cardCount.total) * 100)
       : 0;
 
   return (
@@ -102,7 +103,7 @@ export default function SetDetailsPage({
               </p>
 
               <p className="mt-1 text-3xl font-bold text-zinc-900">
-                {owned} / {set.cardCount.total}
+                {displayedCount} / {set.cardCount.total}
               </p>
 
               <p className="mt-2 text-xs text-zinc-400">
@@ -122,7 +123,10 @@ export default function SetDetailsPage({
               </div>
 
               <p className="mt-2 text-xs text-zinc-400">
-                {owned} {owned === 1 ? "carta" : "cartas"} de {set.cardCount.total}
+                {displayedCount}{" "}
+                {displayedCount === 1 ? "carta" : "cartas"}{" "}
+                {isWishlist ? "en wishlist de" : "de"}{" "}
+                {set.cardCount.total}
               </p>
             </GlassPanel>
           </div>
