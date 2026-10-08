@@ -9,6 +9,7 @@ interface SetCardProps {
   ownedCards?: number;
   logo?: string;
   basePath?: string;
+  progressLabel?: string;
 }
 
 export default function SetCard({
@@ -19,6 +20,7 @@ export default function SetCard({
   ownedCards,
   logo,
   basePath = "/sets",
+  progressLabel = "Progreso",
 }: SetCardProps) {
   return (
     <Link href={`${basePath}/${code}`} className="group block">
@@ -67,7 +69,7 @@ export default function SetCard({
           {/* Progreso */}
           <div className="mt-5">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-zinc-500">Progreso</span>
+              <span className="text-zinc-500">{progressLabel}</span>
 
               <span className="font-semibold text-zinc-800">
                 {ownedCards ?? 0} / {cards}
