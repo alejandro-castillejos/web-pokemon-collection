@@ -315,11 +315,19 @@ export default async function SearchPage({
       card.setId,
   }));
 
+  const searchSets = matchingSets.map((set) => ({
+    id: set.id,
+    name: set.name,
+    logo: set.logo,
+    cards: set.cardCount?.total ?? 0,
+    progress: 0,
+  }));
+
   return (
     <SearchResults
       query={query}
       scope={scope}
-      sets={scope === "sets" ? matchingSets : scope === "all" ? matchingSets : []}
+      sets={scope === "sets" || scope === "all" ? searchSets : []}
       cards={scope === "sets" ? [] : matchingCards}
     />
   );
