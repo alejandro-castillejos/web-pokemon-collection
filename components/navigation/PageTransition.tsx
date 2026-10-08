@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 type Direction = "forward" | "backward";
 
@@ -87,7 +87,7 @@ export default function PageTransition({
   const [isRevealing, setIsRevealing] = useState(false);
   const [transitionKey, setTransitionKey] = useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (previousPathname.current === pathname) return;
 
     const nextDirection = getDirection(previousPathname.current, pathname);
