@@ -11,7 +11,7 @@ interface PokemonCardProps {
   image?: string;
   owned?: boolean;
   wishlist?: boolean;
-  basePath?: "/sets" | "/collection";
+  basePath?: "/sets" | "/collection" | "/wishlist";
 }
 
 export default function PokemonCard({
