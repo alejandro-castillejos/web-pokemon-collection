@@ -43,7 +43,7 @@ export default function SetDetailsPage({
             ← Volver a {isCollection ? "colección" : "sets"}
           </Link>
 
-          <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="mt-4 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <div className="mb-5 flex h-20 items-center">
                 {set.logo ? (
