@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRouter } from "next/navigation";
 
 type SearchScope =
   | "all"
@@ -44,6 +45,7 @@ export default function SearchBox({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const requestIdRef = useRef(0);
+  const router = useRouter();
 
   useEffect(() => {
     if (!mobileOpen) {
@@ -169,7 +171,9 @@ export default function SearchBox({
       params.set("setId", setId);
     }
 
-    window.location.href = `/search?${params.toString()}`;
+    setOpen(false);
+    setMobileOpen(false);
+    router.push(`/search?${params.toString()}`);
   }
 
   const input = (
