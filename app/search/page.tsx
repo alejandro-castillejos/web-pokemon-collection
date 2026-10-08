@@ -233,7 +233,7 @@ export default async function SearchPage({
             id: set.id,
             name: set.name,
             logo: set.logo,
-            cards: set.cardCount.total,
+            cards: set.cardCount?.total ?? 0,
             progress,
             ownedCards: savedCount,
           };
@@ -450,6 +450,7 @@ function SearchResults({
                         number={card.localId}
                         name={card.name}
                         image={card.image}
+                        setName={card.setName}
                         owned={collectionCardIds.has(card.id)}
                         wishlist={wishlistCardIds.has(card.id)}
                         basePath={cardBasePath}
