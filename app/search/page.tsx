@@ -144,9 +144,10 @@ export default async function SearchPage({
     } = await supabase.auth.getUser();
 
     if (!user) {
-      redirect(
-        `/login?message=Inicia sesión para buscar en tu ${scope === "collection" ? "colección" : "wishlist"}`
-      );
+      const reason =
+        scope === "collection" ? "collection" : "wishlist";
+
+      redirect(`/login?reason=${reason}`);
     }
 
     const [{ data: savedRows, error: savedError }, { data: collectionRows, error: collectionError }, { data: wishlistRows, error: wishlistError }, sets, cards] = await Promise.all([
