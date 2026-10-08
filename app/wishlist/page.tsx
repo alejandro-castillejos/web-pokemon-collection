@@ -54,7 +54,7 @@ export default async function WishlistPage({
     ? (params.sort as SetSortType)
     : "recent";
 
-  const currentView = params.view === "cards" ? "cards" : "sets";
+  const currentView = params.view === "sets" ? "sets" : "cards";
 
   const currentCardSort: CardSortType =
     validCardSorts.includes(params.cardSort as CardSortType)
