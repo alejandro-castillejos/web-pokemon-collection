@@ -22,7 +22,8 @@ export async function toggleCollection(cardId: string, setId: string) {
     return {
       success: false,
       owned: false,
-      error: "Debes iniciar sesión para modificar tu colección.",
+      requiresLogin: true,
+      error: "Inicia sesión para agregar esta carta a tu colección.",
     };
   }
 
@@ -37,6 +38,7 @@ export async function toggleCollection(cardId: string, setId: string) {
     return {
       success: false,
       owned: false,
+      requiresLogin: false,
       error: findError.message,
     };
   }
@@ -52,6 +54,7 @@ export async function toggleCollection(cardId: string, setId: string) {
       return {
         success: false,
         owned: true,
+        requiresLogin: false,
         error: error.message,
       };
     }
@@ -61,6 +64,7 @@ export async function toggleCollection(cardId: string, setId: string) {
     return {
       success: true,
       owned: false,
+      requiresLogin: false,
       error: null,
     };
   }
@@ -98,7 +102,8 @@ export async function toggleWishlist(cardId: string, setId: string) {
     return {
       success: false,
       wishlist: false,
-      error: "Debes iniciar sesión para modificar tu wishlist.",
+      requiresLogin: true,
+      error: "Inicia sesión para agregar esta carta a tu wishlist.",
     };
   }
 
@@ -113,6 +118,7 @@ export async function toggleWishlist(cardId: string, setId: string) {
     return {
       success: false,
       wishlist: false,
+      requiresLogin: false,
       error: findError.message,
     };
   }
@@ -128,6 +134,7 @@ export async function toggleWishlist(cardId: string, setId: string) {
       return {
         success: false,
         wishlist: true,
+        requiresLogin: false,
         error: error.message,
       };
     }
@@ -137,6 +144,7 @@ export async function toggleWishlist(cardId: string, setId: string) {
     return {
       success: true,
       wishlist: false,
+      requiresLogin: false,
       error: null,
     };
   }
