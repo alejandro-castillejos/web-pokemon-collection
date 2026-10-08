@@ -4,7 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 type Direction = "forward" | "backward";
-type Phase = "idle" | "covering" | "revealing";
+type Phase = "idle" | "revealing";
 
 function getRouteInfo(pathname: string) {
   const clean = pathname.replace(/\/+$/, "") || "/";
@@ -62,16 +62,6 @@ const transitionStyles = `
   .page-transition-content { min-height: 100%; will-change: transform, opacity; backface-visibility: hidden; }
   .page-transition-content.reveal-forward { animation: page-reveal-forward 520ms cubic-bezier(0.22,1,0.36,1) both; }
   .page-transition-content.reveal-backward { animation: page-reveal-backward 520ms cubic-bezier(0.22,1,0.36,1) both; }
-  .page-transition-cover {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-    pointer-events: all;
-    background: #fff;
-  }
-  .page-transition-cover.revealing {
-    animation: page-cover-reveal 460ms cubic-bezier(0.22,1,0.36,1) forwards;
-  }
   @keyframes page-reveal-forward {
     from { opacity: 0; transform: translate3d(72px,0,0); }
     to { opacity: 1; transform: translate3d(0,0,0); }
@@ -80,14 +70,10 @@ const transitionStyles = `
     from { opacity: 0; transform: translate3d(-72px,0,0); }
     to { opacity: 1; transform: translate3d(0,0,0); }
   }
-  @keyframes page-cover-reveal {
-    from { opacity: 1; visibility: visible; }
-    to { opacity: 0; visibility: hidden; }
-  }
   @media (prefers-reduced-motion: reduce) {
     .page-transition-content.reveal-forward,
     .page-transition-content.reveal-backward,
-    .page-transition-cover.revealing { animation-duration: 1ms; }
+
   }
 `;
 
@@ -169,12 +155,7 @@ export default function PageTransition({ children }: { children: React.ReactNode
         <div key={transitionKey} className={`page-transition-content ${revealClass}`}>
           {children}
         </div>
-        {phase !== "idle" && (
-          <div
-            className={`page-transition-cover ${phase === "revealing" ? "revealing" : ""}`}
-            aria-hidden="true"
-          />
-        )}
+
       </div>
     </>
   );
