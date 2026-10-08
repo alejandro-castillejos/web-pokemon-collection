@@ -35,11 +35,16 @@ export default async function Home() {
   const collection = collectionRows ?? [];
   const totalCards = collection.length;
 
-  let stats = {
-    sets: 0,
-    cards: totalCards,
-    progress: 0,
-  };
+  let totalSets = 0;
+  let completedSets = 0;
+  let bestSet: {
+    id: string;
+    name: string;
+    logo?: string;
+    owned: number;
+    total: number;
+    progress: number;
+  } | null = null;
 
   let recentCards: Array<{
     id: string;
@@ -64,27 +69,49 @@ export default async function Home() {
       );
     }
 
-    const totalCatalogCards = sets.reduce(
-      (total, set) => total + set.cardCount.total,
-      0
-    );
+    const ownedSets = sets
+      .filter((set) => (ownedBySet.get(set.id) ?? 0) > 0)
+      .map((set) => {
+        const owned = ownedBySet.get(set.id) ?? 0;
+        const progress =
+          set.cardCount.total > 0
+            ? Math.round(
+                (owned / set.cardCount.total) * 100
+              )
+            : 0;
 
-    const ownedSetCount = [...ownedBySet.keys()].filter((setId) =>
-      setIds.has(setId)
+        return {
+          id: set.id,
+          name: set.name,
+          logo: set.logo,
+          owned,
+          total: set.cardCount.total,
+          progress,
+        };
+      });
+
+    totalSets = ownedSets.length;
+    completedSets = ownedSets.filter(
+      (set) => set.progress >= 100
     ).length;
 
-    const progress =
-      totalCatalogCards > 0
-        ? Math.round(
-            (totalCards / totalCatalogCards) * 100
-          )
-        : 0;
+    bestSet =
+      ownedSets.reduce<typeof bestSet>((best, set) => {
+        if (!best) return set;
 
-    stats = {
-      sets: ownedSetCount,
-      cards: totalCards,
-      progress,
-    };
+        if (set.progress > best.progress) {
+          return set;
+        }
+
+        if (
+          set.progress === best.progress &&
+          set.owned > best.owned
+        ) {
+          return set;
+        }
+
+        return best;
+      }, null);
 
     const latestRows = collection.slice(0, 3);
 
@@ -126,6 +153,10 @@ export default async function Home() {
         image?: string;
       } => card !== null
     );
+
+    // Evitamos que variables calculadas que solo sirven para
+    // identificar sets válidos queden sin uso.
+    void setIds;
   }
 
   return (
@@ -183,39 +214,102 @@ export default async function Home() {
                 </Link>
               </GlassPanel>
             ) : (
-              <GlassPanel className="mt-8 flex max-w-2xl overflow-hidden rounded-[24px]">
-                {[
-                  { label: "Sets", value: String(stats.sets), icon: "≋" },
-                  { label: "Cartas", value: String(stats.cards), icon: "▤" },
-                  {
-                    label: "Completado",
-                    value: `${stats.progress}%`,
-                    icon: "◌",
-                  },
-                ].map((stat, index, allStats) => (
-                  <div
-                    key={stat.label}
-                    className={`flex flex-1 items-center gap-3 px-5 py-4 ${
-                      index !== allStats.length - 1
-                        ? "border-r border-black/5"
-                        : ""
-                    }`}
+              <>
+                <GlassPanel className="mt-8 flex max-w-2xl overflow-hidden rounded-[24px]">
+                  {[
+                    {
+                      label: "Sets",
+                      value: String(totalSets),
+                      icon: "≋",
+                    },
+                    {
+                      label: "Cartas",
+                      value: String(totalCards),
+                      icon: "▤",
+                    },
+                    {
+                      label: "Sets completos",
+                      value: String(completedSets),
+                      icon: "✓",
+                    },
+                  ].map((stat, index, allStats) => (
+                    <div
+                      key={stat.label}
+                      className={`flex flex-1 items-center gap-3 px-5 py-4 ${
+                        index !== allStats.length - 1
+                          ? "border-r border-black/5"
+                          : ""
+                      }`}
+                    >
+                      <div className="hidden h-10 w-10 items-center justify-center rounded-2xl bg-black/5 text-lg sm:flex">
+                        {stat.icon}
+                      </div>
+
+                      <div>
+                        <p className="text-lg font-bold leading-none sm:text-2xl">
+                          {stat.value}
+                        </p>
+                        <p className="mt-1 text-xs text-zinc-500">
+                          {stat.label}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </GlassPanel>
+
+                {bestSet && (
+                  <GlassPanel
+                    strong
+                    className="mt-5 max-w-2xl rounded-[28px] p-5 sm:p-6"
                   >
-                    <div className="hidden h-10 w-10 items-center justify-center rounded-2xl bg-black/5 text-lg sm:flex">
-                      {stat.icon}
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                          Mejor set
+                        </p>
+
+                        <Link
+                          href={`/sets/${bestSet.id}`}
+                          className="mt-2 block truncate text-xl font-bold tracking-tight text-zinc-900 transition hover:text-zinc-600 sm:text-2xl"
+                        >
+                          {bestSet.name}
+                        </Link>
+
+                        <p className="mt-1 text-sm text-zinc-500">
+                          {bestSet.owned} de {bestSet.total} cartas ·{" "}
+                          {bestSet.progress}% completado
+                        </p>
+                      </div>
+
+                      {bestSet.logo ? (
+                        <Link
+                          href={`/sets/${bestSet.id}`}
+                          className="flex h-16 w-20 shrink-0 items-center justify-center rounded-2xl bg-white/55 p-2"
+                          aria-label={`Ver set ${bestSet.name}`}
+                        >
+                          <img
+                            src={`${bestSet.logo}.webp`}
+                            alt={`Logo de ${bestSet.name}`}
+                            className="max-h-12 max-w-full object-contain"
+                          />
+                        </Link>
+                      ) : null}
                     </div>
 
-                    <div>
-                      <p className="text-lg font-bold leading-none sm:text-2xl">
-                        {stat.value}
-                      </p>
-                      <p className="mt-1 text-xs text-zinc-500">
-                        {stat.label}
-                      </p>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/5">
+                      <div
+                        className="h-full rounded-full bg-[#f2c72e]"
+                        style={{
+                          width:
+                            bestSet.progress > 0
+                              ? `${Math.max(bestSet.progress, 1)}%`
+                              : "0%",
+                        }}
+                      />
                     </div>
-                  </div>
-                ))}
-              </GlassPanel>
+                  </GlassPanel>
+                )}
+              </>
             )}
           </div>
 
@@ -268,10 +362,6 @@ export default async function Home() {
                         {card.setName}
                       </p>
                     </div>
-
-                    <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                      Añadida
-                    </span>
                   </Link>
                 ))}
               </div>
