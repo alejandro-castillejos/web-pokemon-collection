@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import GlassPanel from "@/components/ui/GlassPanel";
+import PasswordFields from "@/components/account/PasswordFields";
 import { createClient } from "@/lib/supabase/server";
 import { changePassword, logout } from "./actions";
 
@@ -121,64 +122,11 @@ export default async function AccountPage({
                 )}
 
                 <form action={changePassword} className="space-y-4">
-                  <div>
-                    <label
-                      htmlFor="currentPassword"
-                      className="mb-2 block text-sm font-semibold text-zinc-700"
-                    >
-                      Contraseña actual
-                    </label>
-
-                    <input
-                      id="currentPassword"
-                      name="currentPassword"
-                      type="password"
-                      required
-                      autoComplete="current-password"
-                      className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                      placeholder="••••••••"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="newPassword"
-                      className="mb-2 block text-sm font-semibold text-zinc-700"
-                    >
-                      Nueva contraseña
-                    </label>
-
-                    <input
-                      id="newPassword"
-                      name="newPassword"
-                      type="password"
-                      required
-                      minLength={6}
-                      autoComplete="new-password"
-                      className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                      placeholder="••••••••"
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="confirmPassword"
-                      className="mb-2 block text-sm font-semibold text-zinc-700"
-                    >
-                      Confirmar nueva contraseña
-                    </label>
-
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type="password"
-                      required
-                      minLength={6}
-                      autoComplete="new-password"
-                      className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                      placeholder="••••••••"
-                    />
-                  </div>
+                  <PasswordFields
+                    currentPasswordId="currentPassword"
+                    newPasswordId="newPassword"
+                    confirmPasswordId="confirmPassword"
+                  />
 
                   <button
                     type="submit"
