@@ -84,24 +84,34 @@ export default async function SearchPage({
       );
     }
 
-    const table = scope === "collection" ? "collection" : "wishlist";
-
-    const [{ data: rows, error }, sets, cards] = await Promise.all([
+    const [{ data: savedRows, error: savedError }, { data: collectionRows, error: collectionError }, { data: wishlistRows, error: wishlistError }, sets, cards] = await Promise.all([
       supabase
-        .from(table)
+        .from(scope)
+        .select("card_id"),
+      supabase
+        .from("collection")
+        .select("card_id"),
+      supabase
+        .from("wishlist")
         .select("card_id"),
       getAllSets("recent"),
       searchCards(query),
     ]);
 
-    if (error) {
+    if (savedError || collectionError || wishlistError) {
       throw new Error(
-        `Error obteniendo datos para la búsqueda: ${error.message}`
+        "Error obteniendo datos para la búsqueda."
       );
     }
 
     const savedCardIds = new Set(
-      rows?.map((row) => row.card_id) ?? []
+      savedRows?.map((row) => row.card_id) ?? []
+    );
+    const collectionCardIds = new Set(
+      collectionRows?.map((row) => row.card_id) ?? []
+    );
+    const wishlistCardIds = new Set(
+      wishlistRows?.map((row) => row.card_id) ?? []
     );
 
     const savedSetIds = new Set(
@@ -139,19 +149,29 @@ export default async function SearchPage({
       <SearchResults
         query={query}
         scope={scope}
-        sets={matchingSets.map((set) => ({
-          id: set.id,
-          name: set.name,
-          logo: set.logo,
-          cards: set.cardCount.total,
-          progress: 0,
-          ownedCards: savedCardIds
-            ? [...savedCardIds].filter(
-                (cardId) => getSetIdFromCardId(cardId) === set.id
-              ).length
-            : 0,
-        }))}
+        sets={matchingSets.map((set) => {
+          const savedCount = [...savedCardIds].filter(
+            (cardId) => getSetIdFromCardId(cardId) === set.id
+          ).length;
+          const progress =
+            set.cardCount.total > 0
+              ? Math.round(
+                  (savedCount / set.cardCount.total) * 100
+                )
+              : 0;
+
+          return {
+            id: set.id,
+            name: set.name,
+            logo: set.logo,
+            cards: set.cardCount.total,
+            progress,
+            ownedCards: savedCount,
+          };
+        })}
         cards={matchingCards}
+        collectionCardIds={collectionCardIds}
+        wishlistCardIds={wishlistCardIds}
       />
     );
   }
@@ -236,6 +256,8 @@ export default async function SearchPage({
 interface SearchResultsProps {
   query: string;
   scope: SearchScope;
+  collectionCardIds?: Set<string>;
+  wishlistCardIds?: Set<string>;
   sets: Array<{
     id: string;
     name: string;
@@ -257,6 +279,8 @@ interface SearchResultsProps {
 function SearchResults({
   query,
   scope,
+  collectionCardIds = new Set<string>(),
+  wishlistCardIds = new Set<string>(),
   sets,
   cards,
 }: SearchResultsProps) {
@@ -354,8 +378,8 @@ function SearchResults({
                         number={card.localId}
                         name={card.name}
                         image={card.image}
-                        owned={scope === "collection" || scope === "wishlist" ? true : false}
-                        wishlist={scope === "wishlist"}
+                        owned={collectionCardIds.has(card.id)}
+                        wishlist={wishlistCardIds.has(card.id)}
                         basePath={cardBasePath}
                       />
                       <p className="pointer-events-none absolute bottom-[88px] left-6 right-6 truncate text-[10px] font-medium text-zinc-400">
