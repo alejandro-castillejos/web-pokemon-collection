@@ -2,6 +2,7 @@ import Link from "next/link";
 import GlassPanel from "@/components/ui/GlassPanel";
 import SetDetailsPage from "@/components/pokemon/SetDetailsPage";
 import { getSet } from "@/lib/tcgdex";
+import { createClient } from "@/lib/supabase/server";
 
 interface SetPageProps {
   params: Promise<{ setId: string }>;
@@ -9,7 +10,12 @@ interface SetPageProps {
 
 export default async function SetPage({ params }: SetPageProps) {
   const { setId } = await params;
-  const set = await getSet(setId);
+  const supabase = await createClient();
+
+  const [set, authResult] = await Promise.all([
+    getSet(setId),
+    supabase.auth.getUser(),
+  ]);
 
   if (!set) {
     return (
@@ -26,5 +32,51 @@ export default async function SetPage({ params }: SetPageProps) {
     );
   }
 
-  return <SetDetailsPage set={set} basePath="/sets" />;
+  const {
+    data: { user },
+  } = authResult;
+
+  const ownedCardIds = new Set<string>();
+  const wishlistCardIds = new Set<string>();
+
+  if (user && set.cards?.length) {
+    const cardIds = set.cards.map((card) => card.id);
+
+    const [collectionResult, wishlistResult] = await Promise.all([
+      supabase
+        .from("collection")
+        .select("card_id")
+        .eq("user_id", user.id)
+        .in("card_id", cardIds),
+      supabase
+        .from("wishlist")
+        .select("card_id")
+        .eq("user_id", user.id)
+        .in("card_id", cardIds),
+    ]);
+
+    if (collectionResult.error) {
+      throw new Error(
+        `Error obteniendo la colección: ${collectionResult.error.message}`
+      );
+    }
+
+    if (wishlistResult.error) {
+      throw new Error(
+        `Error obteniendo la wishlist: ${wishlistResult.error.message}`
+      );
+    }
+
+    collectionResult.data?.forEach((row) => ownedCardIds.add(row.card_id));
+    wishlistResult.data?.forEach((row) => wishlistCardIds.add(row.card_id));
+  }
+
+  return (
+    <SetDetailsPage
+      set={set}
+      basePath="/sets"
+      ownedCardIds={ownedCardIds}
+      wishlistCardIds={wishlistCardIds}
+    />
+  );
 }
