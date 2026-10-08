@@ -9,7 +9,7 @@ type SetFilter = "all" | "missing" | "collection" | "wishlist";
 
 interface SetDetailsPageProps {
   set: SetData;
-  basePath: "/sets" | "/collection";
+  basePath: "/sets" | "/collection" | "/wishlist";
   ownedCardIds?: Set<string>;
   wishlistCardIds?: Set<string>;
   filter?: SetFilter;
@@ -24,6 +24,7 @@ export default function SetDetailsPage({
 }: SetDetailsPageProps) {
   const allCards = set.cards ?? [];
   const isCollection = basePath === "/collection";
+  const isWishlist = basePath === "/wishlist";
 
   const collectionCards = allCards.filter((card) =>
     ownedCardIds.has(card.id)
@@ -37,9 +38,13 @@ export default function SetDetailsPage({
     wishlistCardIds.has(card.id)
   );
 
-  let cards = isCollection ? collectionCards : allCards;
+  let cards = isCollection
+    ? collectionCards
+    : isWishlist
+      ? wishlistCards
+      : allCards;
 
-  if (!isCollection) {
+  if (!isCollection && !isWishlist) {
     if (filter === "missing") cards = missingCards;
     if (filter === "collection") cards = collectionCards;
     if (filter === "wishlist") cards = wishlistCards;
@@ -164,7 +169,9 @@ export default function SetDetailsPage({
               <h2 className="text-xl font-semibold text-zinc-900">
                 {isCollection
                   ? "No tienes cartas de este set"
-                  : filter === "missing"
+                  : isWishlist
+                    ? "No tienes cartas de este set en tu wishlist"
+                    : filter === "missing"
                     ? "No faltan cartas de este set"
                     : filter === "collection"
                       ? "No tienes cartas en tu colección de este set"
@@ -175,7 +182,9 @@ export default function SetDetailsPage({
               <p className="mt-2 text-sm leading-6 text-zinc-500">
                 {isCollection
                   ? "Agrega cartas desde la sección de Sets para verlas aquí."
-                  : filter === "all"
+                  : isWishlist
+                    ? "Agrega cartas a tu wishlist desde la sección de Sets para verlas aquí."
+                    : filter === "all"
                     ? "No se encontraron cartas para este set."
                     : "Prueba otro filtro para ver más cartas."}
               </p>
