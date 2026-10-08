@@ -5,11 +5,14 @@ import { getSet } from "@/lib/tcgdex";
 
 type SetData = NonNullable<Awaited<ReturnType<typeof getSet>>>;
 
+type SetFilter = "all" | "missing" | "collection" | "wishlist";
+
 interface SetDetailsPageProps {
   set: SetData;
   basePath: "/sets" | "/collection";
   ownedCardIds?: Set<string>;
   wishlistCardIds?: Set<string>;
+  filter?: SetFilter;
 }
 
 export default function SetDetailsPage({
@@ -17,12 +20,31 @@ export default function SetDetailsPage({
   basePath,
   ownedCardIds = new Set<string>(),
   wishlistCardIds = new Set<string>(),
+  filter = "all",
 }: SetDetailsPageProps) {
   const allCards = set.cards ?? [];
   const isCollection = basePath === "/collection";
-  const cards = isCollection
-    ? allCards.filter((card) => ownedCardIds.has(card.id))
-    : allCards;
+
+  const collectionCards = allCards.filter((card) =>
+    ownedCardIds.has(card.id)
+  );
+
+  const missingCards = allCards.filter(
+    (card) => !ownedCardIds.has(card.id)
+  );
+
+  const wishlistCards = allCards.filter((card) =>
+    wishlistCardIds.has(card.id)
+  );
+
+  let cards = isCollection ? collectionCards : allCards;
+
+  if (!isCollection) {
+    if (filter === "missing") cards = missingCards;
+    if (filter === "collection") cards = collectionCards;
+    if (filter === "wishlist") cards = wishlistCards;
+  }
+
   const owned = ownedCardIds.size;
   const progress =
     set.cardCount.total > 0
@@ -104,33 +126,34 @@ export default function SetDetailsPage({
         {!isCollection && (
           <section className="mb-8">
             <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                className="rounded-full bg-white/80 px-5 py-3 text-sm font-semibold text-zinc-900 shadow-sm"
-              >
-                Todas
-              </button>
+              {(
+                [
+                  { value: "all" as const, label: "Todas" },
+                  { value: "missing" as const, label: "Me faltan" },
+                  { value: "collection" as const, label: "Colección" },
+                  { value: "wishlist" as const, label: "Wishlist" },
+                ]
+              ).map((option) => {
+                const active = filter === option.value;
+                const href =
+                  option.value === "all"
+                    ? `/sets/${set.id}`
+                    : `/sets/${set.id}?filter=${option.value}`;
 
-              <button
-                type="button"
-                className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
-              >
-                Me faltan
-              </button>
-
-              <button
-                type="button"
-                className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
-              >
-                Colección
-              </button>
-
-              <button
-                type="button"
-                className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
-              >
-                Wishlist
-              </button>
+                return (
+                  <Link
+                    key={option.value}
+                    href={href}
+                    className={`rounded-full px-5 py-3 text-sm transition ${
+                      active
+                        ? "bg-white/80 font-semibold text-zinc-900 shadow-sm"
+                        : "border border-transparent text-zinc-500 hover:bg-white/60 hover:text-zinc-900"
+                    }`}
+                  >
+                    {option.label}
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}
@@ -139,10 +162,22 @@ export default function SetDetailsPage({
           {cards.length === 0 ? (
             <GlassPanel strong className="p-10 text-center sm:p-16">
               <h2 className="text-xl font-semibold text-zinc-900">
-                No tienes cartas de este set
+                {isCollection
+                  ? "No tienes cartas de este set"
+                  : filter === "missing"
+                    ? "No faltan cartas de este set"
+                    : filter === "collection"
+                      ? "No tienes cartas en tu colección de este set"
+                      : filter === "wishlist"
+                        ? "No tienes cartas de este set en tu wishlist"
+                        : "No hay cartas disponibles"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-zinc-500">
-                Agrega cartas desde la sección de Sets para verlas aquí.
+                {isCollection
+                  ? "Agrega cartas desde la sección de Sets para verlas aquí."
+                  : filter === "all"
+                    ? "No se encontraron cartas para este set."
+                    : "Prueba otro filtro para ver más cartas."}
               </p>
             </GlassPanel>
           ) : (
