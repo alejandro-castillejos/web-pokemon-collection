@@ -54,17 +54,44 @@ export default async function SearchPage({
     return (
       <main className="px-4 pb-10 pt-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
-          <GlassPanel strong className="mx-auto max-w-2xl rounded-[28px] p-10 text-center sm:p-14">
-            <p className="text-sm font-medium text-zinc-500">
-              Búsqueda
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-900">
-              Busca cartas o sets
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-zinc-500">
-              Escribe un nombre, número o nombre de set en el buscador de la
-              Navbar.
-            </p>
+          <GlassPanel
+            strong
+            className="mx-auto max-w-2xl rounded-[28px] p-8 sm:p-10"
+          >
+            <div className="text-center">
+              <p className="text-sm font-medium text-zinc-500">
+                Búsqueda
+              </p>
+
+              <h1 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-900">
+                Busca cartas o sets
+              </h1>
+
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                Escribe un nombre, número o código para encontrar resultados.
+              </p>
+            </div>
+
+            <form action="/search" method="get" className="mt-7 flex gap-2">
+              <input
+                type="search"
+                name="q"
+                autoFocus
+                required
+                placeholder="Buscar..."
+                className="min-w-0 flex-1 rounded-full border border-black/5 bg-white/65 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
+              />
+              <input type="hidden" name="scope" value={scope} />
+              {params.setId && (
+                <input type="hidden" name="setId" value={params.setId} />
+              )}
+              <button
+                type="submit"
+                className="yellow-button shrink-0 rounded-full px-5 py-3 text-sm font-semibold"
+              >
+                Buscar
+              </button>
+            </form>
           </GlassPanel>
         </div>
       </main>
