@@ -17,11 +17,11 @@ interface CardSortProps {
 
 const options: { value: CardSort; label: string }[] = [
   { value: "set", label: "Predeterminado" },
-  { value: "name", label: "Nombre A-Z" },
-  { value: "name-desc", label: "Nombre Z-A" },
+  { value: "recent", label: "Agregado recientemente" },
   { value: "number", label: "Número menor → mayor" },
   { value: "number-desc", label: "Número mayor → menor" },
-  { value: "recent", label: "Agregado recientemente" },
+  { value: "name", label: "Nombre A-Z" },
+  { value: "name-desc", label: "Nombre Z-A" },
 ];
 
 export default function CardSort({

@@ -13,9 +13,9 @@ interface SetSortProps {
 const options: { value: SetSort; label: string }[] = [
   { value: "recent", label: "Más recientes" },
   { value: "oldest", label: "Más antiguos" },
+  { value: "progress", label: "Mayor progreso" },
   { value: "name", label: "Nombre A-Z" },
   { value: "name-desc", label: "Nombre Z-A" },
-  { value: "progress", label: "Mayor progreso" },
 ];
 
 export default function SetSort({
