@@ -75,7 +75,7 @@ export default function SetDetailsPage({
               </p>
 
               <p className="mt-1 text-3xl font-bold text-zinc-900">
-                {set.cardCount.total}
+                {owned} / {set.cardCount.total}
               </p>
 
               <p className="mt-2 text-xs text-zinc-400">
@@ -90,13 +90,45 @@ export default function SetDetailsPage({
               </div>
 
               <p className="mt-2 text-xs text-zinc-400">
-                {isCollection
-                  ? `${owned} de ${set.cardCount.total} cartas · ${progress}%`
-                  : "Progreso de colección"}
+                {owned} {owned === 1 ? "carta" : "cartas"} de {set.cardCount.total}
               </p>
             </GlassPanel>
           </div>
         </section>
+
+        {!isCollection && (
+          <section className="mb-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                className="rounded-full bg-white/80 px-5 py-3 text-sm font-semibold text-zinc-900 shadow-sm"
+              >
+                Todas
+              </button>
+
+              <button
+                type="button"
+                className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
+              >
+                Me faltan
+              </button>
+
+              <button
+                type="button"
+                className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
+              >
+                Colección
+              </button>
+
+              <button
+                type="button"
+                className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
+              >
+                Wishlist
+              </button>
+            </div>
+          </section>
+        )}
 
         <section className="pb-16">
           {cards.length === 0 ? (
