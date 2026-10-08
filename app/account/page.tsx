@@ -63,7 +63,7 @@ export default async function AccountPage({
               </div>
             )}
 
-            <div>
+            <div className="py-1">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
                 Correo electrónico
               </p>
@@ -76,7 +76,7 @@ export default async function AccountPage({
             <div className="my-6 border-t border-black/5" />
 
             <details className="group">
-              <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl border border-black/5 bg-white/45 px-4 py-4 transition hover:bg-white/60">
+              <summary className="flex cursor-pointer list-none items-center justify-between py-1 transition hover:text-zinc-700">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
                     Seguridad
