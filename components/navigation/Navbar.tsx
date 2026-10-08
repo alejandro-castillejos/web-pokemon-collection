@@ -27,6 +27,10 @@ export default function Navbar() {
       ? pathname.split("/")[2] ?? ""
       : "";
 
+  const mobileSearchHref = searchSetId
+    ? `/search?scope=${searchScope}&setId=${searchSetId}`
+    : `/search?scope=${searchScope}`;
+
   let searchPlaceholder = "Buscar cartas, sets...";
 
   if (isSets) {
@@ -75,6 +79,24 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <Link
+            href={mobileSearchHref}
+            aria-label="Buscar"
+            title="Buscar"
+            className="glass-hover flex h-10 w-10 items-center justify-center rounded-full text-zinc-700 lg:hidden"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-5 w-5"
+            >
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4.5 4.5" strokeLinecap="round" />
+            </svg>
+          </Link>
+
           <form
             action="/search"
             method="get"
