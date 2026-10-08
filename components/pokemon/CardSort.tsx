@@ -33,7 +33,7 @@ export default function CardSort({
 
   const selectedLabel =
     options.find((option) => option.value === currentSort)?.label ??
-    "Por set";
+    "Predeterminado";
 
   function handleChange(value: CardSort) {
     const params = new URLSearchParams(window.location.search);
