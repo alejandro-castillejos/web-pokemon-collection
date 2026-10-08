@@ -13,6 +13,7 @@ type CardSort =
 
 interface CardSortProps {
   currentSort: CardSort;
+  basePath?: "/collection" | "/wishlist";
 }
 
 const options: { value: CardSort; label: string }[] = [
@@ -26,6 +27,7 @@ const options: { value: CardSort; label: string }[] = [
 
 export default function CardSort({
   currentSort,
+  basePath = "/collection",
 }: CardSortProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -42,7 +44,7 @@ export default function CardSort({
     params.set("cardSort", value);
 
     setOpen(false);
-    router.push(`/collection?${params.toString()}`);
+    router.push(`${basePath}?${params.toString()}`);
   }
 
   useEffect(() => {
