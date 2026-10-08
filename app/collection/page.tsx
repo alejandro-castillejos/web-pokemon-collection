@@ -46,10 +46,12 @@ export default async function CollectionPage({
   const currentView = params.view === "cards" ? "cards" : "sets";
 
   const validCardSorts = [
+  "set",
   "name",
   "name-desc",
   "number",
   "number-desc",
+  "recent",
 ] as const;
 
 type CardSortType = (typeof validCardSorts)[number];
@@ -57,7 +59,7 @@ type CardSortType = (typeof validCardSorts)[number];
 const currentCardSort: CardSortType =
   validCardSorts.includes(params.cardSort as CardSortType)
     ? (params.cardSort as CardSortType)
-    : "name";
+    : "set";
 
   const supabase = await createClient();
 
@@ -75,7 +77,7 @@ const currentCardSort: CardSortType =
   const [collectionResult, sets] = await Promise.all([
     supabase
       .from("collection")
-      .select("card_id"),
+      .select("card_id, created_at"),
     getAllSets(
       currentSort === "progress" ? "recent" : currentSort
     ),
@@ -86,6 +88,10 @@ const currentCardSort: CardSortType =
       `Error obteniendo la colección: ${collectionResult.error.message}`
     );
   }
+
+  const collectionAddedAt = new Map(
+    collectionResult.data?.map((row) => [row.card_id, row.created_at]) ?? []
+  );
 
   const ownedCardIds = new Set(
     collectionResult.data?.map((row) => row.card_id) ?? []
@@ -198,6 +204,7 @@ const currentCardSort: CardSortType =
             localId: String(card.localId),
             name: card.name,
             image: card.image,
+            createdAt: collectionAddedAt.get(card.id) ?? "",
             setId: set.id,
           });
         }
@@ -206,25 +213,44 @@ const currentCardSort: CardSortType =
   }
 
   if (currentView === "cards") {
-      collectionCards.sort((a, b) => {
-        if (currentCardSort === "name") {
-          return a.name.localeCompare(b.name, "es");
+    const setOrder = new Map(
+      collectionSets.map((set, index) => [set.id, index])
+    );
+
+    collectionCards.sort((a, b) => {
+      if (currentCardSort === "set") {
+        const setA = setOrder.get(a.setId) ?? Number.MAX_SAFE_INTEGER;
+        const setB = setOrder.get(b.setId) ?? Number.MAX_SAFE_INTEGER;
+
+        if (setA !== setB) {
+          return setA - setB;
         }
 
-        if (currentCardSort === "name-desc") {
-          return b.name.localeCompare(a.name, "es");
-        }
+        return parseInt(a.localId, 10) - parseInt(b.localId, 10);
+      }
 
-        const numberA = parseInt(a.localId, 10);
-        const numberB = parseInt(b.localId, 10);
+      if (currentCardSort === "name") {
+        return a.name.localeCompare(b.name, "es");
+      }
 
-        if (currentCardSort === "number") {
-          return numberA - numberB;
-        }
+      if (currentCardSort === "name-desc") {
+        return b.name.localeCompare(a.name, "es");
+      }
 
-        return numberB - numberA;
-      });
-    }
+      if (currentCardSort === "number") {
+        return parseInt(a.localId, 10) - parseInt(b.localId, 10);
+      }
+
+      if (currentCardSort === "number-desc") {
+        return parseInt(b.localId, 10) - parseInt(a.localId, 10);
+      }
+
+      return (
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime()
+      );
+    });
+  }
 
   return (
     <main className="px-4 pb-10 pt-6 sm:px-6 lg:px-8">
