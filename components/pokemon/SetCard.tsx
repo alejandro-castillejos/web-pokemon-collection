@@ -70,14 +70,19 @@ export default function SetCard({
               <span className="text-zinc-500">Progreso</span>
 
               <span className="font-semibold text-zinc-800">
-                {progress}%
+                {ownedCards ?? 0} / {cards}
               </span>
             </div>
 
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/6">
               <div
                 className="h-full rounded-full bg-[#f2c72e] transition-all duration-500"
-                style={{ width: `${progress}%` }}
+                style={{
+                  width:
+                    ownedCards !== undefined && ownedCards > 0
+                      ? `${Math.max(progress, 3)}%`
+                      : "0%",
+                }}
               />
             </div>
           </div>
