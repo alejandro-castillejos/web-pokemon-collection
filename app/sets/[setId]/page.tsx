@@ -6,10 +6,26 @@ import { createClient } from "@/lib/supabase/server";
 
 interface SetPageProps {
   params: Promise<{ setId: string }>;
+  searchParams: Promise<{ filter?: string }>;
 }
 
-export default async function SetPage({ params }: SetPageProps) {
-  const { setId } = await params;
+export default async function SetPage({
+  params,
+  searchParams,
+}: SetPageProps) {
+  const [{ setId }, query] = await Promise.all([
+    params,
+    searchParams,
+  ]);
+
+  const validFilters = ["all", "missing", "collection", "wishlist"] as const;
+  type SetFilter = (typeof validFilters)[number];
+
+  const currentFilter: SetFilter = validFilters.includes(
+    query.filter as SetFilter
+  )
+    ? (query.filter as SetFilter)
+    : "all";
   const supabase = await createClient();
 
   const [set, authResult] = await Promise.all([
@@ -77,6 +93,7 @@ export default async function SetPage({ params }: SetPageProps) {
       basePath="/sets"
       ownedCardIds={ownedCardIds}
       wishlistCardIds={wishlistCardIds}
+      filter={currentFilter}
     />
   );
 }
