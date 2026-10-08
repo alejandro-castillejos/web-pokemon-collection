@@ -116,7 +116,7 @@ export default async function SetsPage({
   }
 
   return (
-    <main className="px-4 pb-10 pt-0 sm:px-6 lg:px-8">
+    <main className="px-4 pb-10 pt-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <section className="mb-8">
           <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
