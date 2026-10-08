@@ -36,7 +36,6 @@ export default async function Home() {
   const totalCards = collection.length;
 
   let totalSets = 0;
-  let completedSets = 0;
   let bestSet: {
     id: string;
     name: string;
@@ -90,9 +89,6 @@ export default async function Home() {
       });
 
     totalSets = ownedSets.length;
-    completedSets = ownedSets.filter(
-      (set) => set.owned >= set.total
-    ).length;
 
     bestSet = ownedSets[0] ?? null;
 
@@ -206,100 +202,95 @@ export default async function Home() {
             ) : (
               <>
                 <GlassPanel className="mt-8 flex max-w-2xl overflow-hidden rounded-[24px]">
-                  {[
-                    {
-                      label: "Sets",
-                      value: String(totalSets),
-                      icon: "≋",
-                    },
-                    {
-                      label: "Cartas",
-                      value: String(totalCards),
-                      icon: "▤",
-                    },
-                    {
-                      label: "Sets completos",
-                      value: String(completedSets),
-                      icon: "✓",
-                    },
-                  ].map((stat, index, allStats) => (
-                    <div
-                      key={stat.label}
-                      className={`flex flex-1 items-center gap-3 px-5 py-4 ${index !== allStats.length - 1
-                          ? "border-r border-black/5"
-                          : ""
-                        }`}
-                    >
-                      <div className="hidden h-10 w-10 items-center justify-center rounded-2xl bg-black/5 text-lg sm:flex">
-                        {stat.icon}
-                      </div>
-
-                      <div>
-                        <p className="text-lg font-bold leading-none sm:text-2xl">
-                          {stat.value}
-                        </p>
-                        <p className="mt-1 text-xs text-zinc-500">
-                          {stat.label}
-                        </p>
-                      </div>
+                  <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-4 sm:px-5">
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-zinc-700 sm:flex">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        className="h-5 w-5"
+                        aria-hidden="true"
+                      >
+                        <rect x="4" y="4" width="16" height="16" rx="3" />
+                        <path d="M8 8h8M8 12h8M8 16h5" />
+                      </svg>
                     </div>
-                  ))}
-                </GlassPanel>
 
-                {bestSet && (
-                  <GlassPanel
-                    strong
-                    className="mt-5 max-w-2xl rounded-[28px] p-5 sm:p-6"
+                    <div className="min-w-0">
+                      <p className="text-lg font-bold leading-none sm:text-2xl">
+                        {totalSets}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        Sets
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex min-w-0 flex-1 items-center gap-3 border-l border-black/5 px-4 py-4 sm:px-5">
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-zinc-700 sm:flex">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        className="h-5 w-5"
+                        aria-hidden="true"
+                      >
+                        <rect x="6" y="4" width="12" height="16" rx="2.5" />
+                        <path d="M9 8h6M9 12h6M9 16h3.5" />
+                        <path d="M4 7v10a2 2 0 0 0 2 2M20 7v10a2 2 0 0 1-2 2" />
+                      </svg>
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="text-lg font-bold leading-none sm:text-2xl">
+                        {totalCards}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        Cartas
+                      </p>
+                    </div>
+                  </div>
+
+                  <Link
+                    href={bestSet ? `/sets/${bestSet.id}` : "/sets"}
+                    className="flex min-w-0 flex-[1.35] items-center gap-3 border-l border-black/5 px-4 py-4 transition hover:bg-white/30 sm:px-5"
+                    aria-label={
+                      bestSet
+                        ? `Ver mejor set: ${bestSet.name}`
+                        : "Explorar sets"
+                    }
                   >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="min-w-0">
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
-                          Mejor set
-                        </p>
-
-                        <Link
-                          href={`/sets/${bestSet.id}`}
-                          className="mt-2 block truncate text-xl font-bold tracking-tight text-zinc-900 transition hover:text-zinc-600 sm:text-2xl"
-                        >
-                          {bestSet.name}
-                        </Link>
-
-                        <p className="mt-1 text-sm text-zinc-500">
-                          {bestSet.owned} de {bestSet.total} cartas
-                        </p>
-                      </div>
-
-                      {bestSet.logo ? (
-                        <Link
-                          href={`/sets/${bestSet.id}`}
-                          className="flex h-16 w-20 shrink-0 items-center justify-center rounded-2xl bg-white/55 p-2"
-                          aria-label={`Ver set ${bestSet.name}`}
-                        >
-                          <img
-                            src={`${bestSet.logo}.webp`}
-                            alt={`Logo de ${bestSet.name}`}
-                            className="max-h-12 max-w-full object-contain"
-                          />
-                        </Link>
-                      ) : null}
+                    <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-zinc-700 sm:flex">
+                      <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        className="h-5 w-5"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 3.5 14 8l4.8.5-3.6 3.2 1 4.7L12 14l-4.2 2.4 1-4.7L5.2 8.5 10 8l2-4.5Z" />
+                        <path d="M7 19h10" />
+                      </svg>
                     </div>
 
-                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-black/5">
-                      <div
-                        className="h-full rounded-full bg-[#f2c72e]"
-                        style={{
-                          width:
-                            bestSet.progress > 0
-                              ? `${Math.max(bestSet.progress, 1)}%`
-                              : "0%",
-                        }}
-                      />
+                    <div className="min-w-0">
+                      <p
+                        className="truncate text-sm font-bold leading-tight text-zinc-900 sm:text-base"
+                        title={bestSet?.name ?? "Sin set"}
+                      >
+                        {bestSet?.name ?? "Sin set"}
+                      </p>
+                      <p className="mt-1 text-xs text-zinc-500">
+                        Mejor set
+                      </p>
                     </div>
-                  </GlassPanel>
-                )}
+                  </Link>
+                </GlassPanel>
               </>
-            )}
-          </div>
+            )}          </div>
 
           {/* ÚLTIMOS AÑADIDOS */}
           <GlassPanel
