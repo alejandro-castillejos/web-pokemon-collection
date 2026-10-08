@@ -27,6 +27,7 @@ export default function CardActionButtons({
   const [loginModalAction, setLoginModalAction] = useState<
     "collection" | "wishlist" | null
   >(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -35,10 +36,12 @@ export default function CardActionButtons({
       const result = await toggleCollection(cardId, setId);
 
       if (!result.success) {
-        if (result.error === "Debes iniciar sesión para modificar tu colección.") {
+        if (result.requiresLogin) {
+          setActionError(null);
           setLoginModalAction("collection");
         } else {
-          alert(result.error);
+          setLoginModalAction(null);
+          setActionError(result.error);
         }
         return;
       }
@@ -53,10 +56,12 @@ export default function CardActionButtons({
       const result = await toggleWishlist(cardId, setId);
 
       if (!result.success) {
-        if (result.error === "Debes iniciar sesión para modificar tu wishlist.") {
+        if (result.requiresLogin) {
+          setActionError(null);
           setLoginModalAction("wishlist");
         } else {
-          alert(result.error);
+          setLoginModalAction(null);
+          setActionError(result.error);
         }
         return;
       }
@@ -119,9 +124,13 @@ export default function CardActionButtons({
       </div>
 
       <LoginRequiredModal
-        open={loginModalAction !== null}
+        open={loginModalAction !== null || actionError !== null}
         action={loginModalAction ?? "collection"}
-        onClose={() => setLoginModalAction(null)}
+        errorMessage={actionError}
+        onClose={() => {
+          setLoginModalAction(null);
+          setActionError(null);
+        }}
       />
     </>
   );
