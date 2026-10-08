@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 function revalidateCardRoutes(setId: string, cardId: string) {
   revalidatePath(`/sets/${setId}/${cardId}`);
   revalidatePath(`/collection/${setId}/${cardId}`);
+  revalidatePath(`/wishlist`);
+  revalidatePath(`/wishlist/${setId}`);
+  revalidatePath(`/wishlist/${setId}/${cardId}`);
 }
 
 export async function toggleCollection(cardId: string, setId: string) {
