@@ -14,7 +14,7 @@ interface CardDetailsPageProps {
   cardId: string;
   set: SetData | null;
   card: CardData | null;
-  basePath: "/sets" | "/collection";
+  basePath: "/sets" | "/collection" | "/wishlist";
 }
 
 export default async function CardDetailsPage({
@@ -54,6 +54,7 @@ export default async function CardDetailsPage({
   }
 
   const isCollection = basePath === "/collection";
+  const isWishlist = basePath === "/wishlist";
 
   if (!set || !card) {
     return (
@@ -72,7 +73,11 @@ export default async function CardDetailsPage({
             href={`${basePath}/${setId}`}
             className="mt-6 inline-flex rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
           >
-            {isCollection ? "Volver a colección" : "Volver al set"}
+            {isCollection
+              ? "Volver a colección"
+              : isWishlist
+                ? "Volver a wishlist"
+                : "Volver al set"}
           </Link>
         </GlassPanel>
       </main>
@@ -88,7 +93,7 @@ export default async function CardDetailsPage({
         <section className="pb-10 pt-0 sm:pb-14">
           <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
             <Link href={basePath} className="transition hover:text-zinc-900">
-              {isCollection ? "Colección" : "Sets"}
+              {isCollection ? "Colección" : isWishlist ? "Wishlist" : "Sets"}
             </Link>
 
             <span>/</span>
