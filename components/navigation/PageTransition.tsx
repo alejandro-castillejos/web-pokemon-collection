@@ -65,7 +65,7 @@ const transitionStyles = `
   .page-transition-cover {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 20;
     pointer-events: all;
     background: #fff;
   }
