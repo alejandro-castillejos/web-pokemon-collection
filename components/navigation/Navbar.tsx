@@ -10,6 +10,22 @@ export default function Navbar() {
   const isSets = pathname.startsWith("/sets");
   const isCollection = pathname.startsWith("/collection");
   const isWishlist = pathname.startsWith("/wishlist");
+  const isAccount = pathname.startsWith("/account");
+
+  const searchScope = isSets
+    ? pathname === "/sets"
+      ? "sets"
+      : "set-cards"
+    : isCollection
+      ? "collection"
+      : isWishlist
+        ? "wishlist"
+        : "all";
+
+  const searchSetId =
+    isSets && pathname !== "/sets"
+      ? pathname.split("/")[2] ?? ""
+      : "";
 
   let searchPlaceholder = "Buscar cartas, sets...";
 
@@ -59,13 +75,48 @@ export default function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <div className="hidden items-center rounded-full border border-black/5 bg-white/55 px-4 py-2.5 lg:flex">
+          <form
+            action="/search"
+            method="get"
+            className="hidden items-center rounded-full border border-black/5 bg-white/65 px-4 py-2.5 lg:flex"
+          >
             <span className="mr-2 text-sm text-zinc-400">⌕</span>
-            <input type="text" placeholder={searchPlaceholder} className="w-44 bg-transparent text-sm outline-none placeholder:text-zinc-400" />
-          </div>
-          <button type="button" aria-label="Perfil" className="glass-hover flex h-10 w-10 items-center justify-center rounded-full text-zinc-700">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-5 w-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0" /></svg>
-          </button>
+            <input
+              type="search"
+              name="q"
+              placeholder={searchPlaceholder}
+              aria-label={searchPlaceholder}
+              autoComplete="off"
+              className="w-44 bg-transparent text-sm outline-none placeholder:text-zinc-400"
+            />
+            <input type="hidden" name="scope" value={searchScope} />
+            {searchSetId && (
+              <input type="hidden" name="setId" value={searchSetId} />
+            )}
+          </form>
+
+          <Link
+            href="/account"
+            aria-label="Cuenta"
+            title="Cuenta"
+            className={`glass-hover flex h-10 w-10 items-center justify-center rounded-full text-zinc-700 transition ${
+              isAccount ? activeClass : ""
+            }`}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className="h-5 w-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 6.75a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1-7.5 0 3.75 3.75 1 1 1 15.75 6.75ZM4.5 20.25a7.5 7.5 0 0 1 15 0"
+              />
+            </svg>
+          </Link>
         </div>
       </div>
     </header>
