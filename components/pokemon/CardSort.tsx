@@ -4,20 +4,24 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type CardSort =
+  | "set"
   | "name"
   | "name-desc"
   | "number"
-  | "number-desc";
+  | "number-desc"
+  | "recent";
 
 interface CardSortProps {
   currentSort: CardSort;
 }
 
 const options: { value: CardSort; label: string }[] = [
+  { value: "set", label: "Por set" },
   { value: "name", label: "Nombre A-Z" },
   { value: "name-desc", label: "Nombre Z-A" },
   { value: "number", label: "Número menor → mayor" },
   { value: "number-desc", label: "Número mayor → menor" },
+  { value: "recent", label: "Agregado recientemente" },
 ];
 
 export default function CardSort({
@@ -29,7 +33,7 @@ export default function CardSort({
 
   const selectedLabel =
     options.find((option) => option.value === currentSort)?.label ??
-    "Nombre A-Z";
+    "Por set";
 
   function handleChange(value: CardSort) {
     const params = new URLSearchParams(window.location.search);
