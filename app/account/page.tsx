@@ -75,101 +75,120 @@ export default async function AccountPage({
 
             <div className="my-6 border-t border-black/5" />
 
-            <section>
-              <div className="mb-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
-                  Seguridad
-                </p>
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between rounded-2xl border border-black/5 bg-white/45 px-4 py-4 transition hover:bg-white/60">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                    Seguridad
+                  </p>
 
-                <h2 className="mt-1 text-xl font-semibold text-zinc-900">
-                  Cambiar contraseña
-                </h2>
+                  <h2 className="mt-1 text-base font-semibold text-zinc-900">
+                    Cambiar contraseña
+                  </h2>
+                </div>
 
-                <p className="mt-1 text-sm leading-6 text-zinc-500">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  className="h-5 w-5 shrink-0 text-zinc-400 transition-transform duration-200 group-open:rotate-180"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="m6 9 6 6 6-6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </summary>
+
+              <div className="pt-5">
+                <p className="mb-5 text-sm leading-6 text-zinc-500">
                   Verifica tu contraseña actual antes de establecer una nueva.
                 </p>
+
+                {params.passwordSuccess && (
+                  <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
+                    {params.passwordSuccess}
+                  </div>
+                )}
+
+                {params.passwordError && (
+                  <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800">
+                    {params.passwordError}
+                  </div>
+                )}
+
+                <form action={changePassword} className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="currentPassword"
+                      className="mb-2 block text-sm font-semibold text-zinc-700"
+                    >
+                      Contraseña actual
+                    </label>
+
+                    <input
+                      id="currentPassword"
+                      name="currentPassword"
+                      type="password"
+                      required
+                      autoComplete="current-password"
+                      className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
+                      placeholder="••••••••"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="newPassword"
+                      className="mb-2 block text-sm font-semibold text-zinc-700"
+                    >
+                      Nueva contraseña
+                    </label>
+
+                    <input
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                      className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
+                      placeholder="••••••••"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="confirmPassword"
+                      className="mb-2 block text-sm font-semibold text-zinc-700"
+                    >
+                      Confirmar nueva contraseña
+                    </label>
+
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      required
+                      minLength={6}
+                      autoComplete="new-password"
+                      className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
+                      placeholder="••••••••"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="yellow-button w-full rounded-full px-5 py-3.5 text-sm font-bold text-[#111111]"
+                  >
+                    Cambiar contraseña
+                  </button>
+                </form>
               </div>
-
-              {params.passwordSuccess && (
-                <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
-                  {params.passwordSuccess}
-                </div>
-              )}
-
-              {params.passwordError && (
-                <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800">
-                  {params.passwordError}
-                </div>
-              )}
-
-              <form action={changePassword} className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="currentPassword"
-                    className="mb-2 block text-sm font-semibold text-zinc-700"
-                  >
-                    Contraseña actual
-                  </label>
-
-                  <input
-                    id="currentPassword"
-                    name="currentPassword"
-                    type="password"
-                    required
-                    autoComplete="current-password"
-                    className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="newPassword"
-                    className="mb-2 block text-sm font-semibold text-zinc-700"
-                  >
-                    Nueva contraseña
-                  </label>
-
-                  <input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                    className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="mb-2 block text-sm font-semibold text-zinc-700"
-                  >
-                    Confirmar nueva contraseña
-                  </label>
-
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    minLength={6}
-                    autoComplete="new-password"
-                    className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                    placeholder="••••••••"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="yellow-button w-full rounded-full px-5 py-3.5 text-sm font-bold text-[#111111]"
-                >
-                  Cambiar contraseña
-                </button>
-              </form>
-            </section>
+            </details>
 
             <div className="my-6 border-t border-black/5" />
 
