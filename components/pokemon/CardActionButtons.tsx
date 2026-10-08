@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import LoginRequiredModal from "@/components/ui/LoginRequiredModal";
 import {
   toggleCollection,
   toggleWishlist,
@@ -23,6 +24,9 @@ export default function CardActionButtons({
   const [owned, setOwned] = useState(initialOwned);
   const [wishlist, setWishlist] = useState(initialWishlist);
   const [isPending, startTransition] = useTransition();
+  const [loginModalAction, setLoginModalAction] = useState<
+    "collection" | "wishlist" | null
+  >(null);
 
   const router = useRouter();
 
@@ -31,7 +35,11 @@ export default function CardActionButtons({
       const result = await toggleCollection(cardId, setId);
 
       if (!result.success) {
-        alert(result.error);
+        if (result.error === "Debes iniciar sesión para modificar tu colección.") {
+          setLoginModalAction("collection");
+        } else {
+          alert(result.error);
+        }
         return;
       }
 
@@ -45,7 +53,11 @@ export default function CardActionButtons({
       const result = await toggleWishlist(cardId, setId);
 
       if (!result.success) {
-        alert(result.error);
+        if (result.error === "Debes iniciar sesión para modificar tu wishlist.") {
+          setLoginModalAction("wishlist");
+        } else {
+          alert(result.error);
+        }
         return;
       }
 
@@ -55,7 +67,8 @@ export default function CardActionButtons({
   }
 
   return (
-    <div className="flex w-full items-center gap-2">
+    <>
+      <div className="flex w-full items-center gap-2">
       {/* Colección */}
       <button
         type="button"
@@ -103,6 +116,13 @@ export default function CardActionButtons({
       >
         {wishlist ? "♥" : "♡"}
       </button>
-    </div>
+      </div>
+
+      <LoginRequiredModal
+        open={loginModalAction !== null}
+        action={loginModalAction ?? "collection"}
+        onClose={() => setLoginModalAction(null)}
+      />
+    </>
   );
 }
