@@ -153,6 +153,7 @@ export default async function SetsPage({
                 code={set.id}
                 cards={set.cardCount.total}
                 progress={set.progress}
+                ownedCards={set.owned}
                 logo={set.logo}
               />
             ))}
