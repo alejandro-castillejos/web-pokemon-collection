@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-export async function toggleCollection(
-  cardId: string,
-  setId: string
-) {
+function revalidateCardRoutes(setId: string, cardId: string) {
+  revalidatePath(`/sets/${setId}/${cardId}`);
+  revalidatePath(`/collection/${setId}/${cardId}`);
+}
+
+export async function toggleCollection(cardId: string, setId: string) {
   const supabase = await createClient();
 
   const {
@@ -51,9 +53,7 @@ export async function toggleCollection(
       };
     }
 
-    revalidatePath(`/sets/${setId}/${cardId}`);
-  revalidatePath(`/collection/${setId}/${cardId}`);
-    revalidatePath(`/collection/${setId}/${cardId}`);
+    revalidateCardRoutes(setId, cardId);
 
     return {
       success: true,
@@ -75,7 +75,7 @@ export async function toggleCollection(
     };
   }
 
-  revalidatePath(`/sets/${setId}/${cardId}`);
+  revalidateCardRoutes(setId, cardId);
 
   return {
     success: true,
@@ -84,10 +84,7 @@ export async function toggleCollection(
   };
 }
 
-export async function toggleWishlist(
-  cardId: string,
-  setId: string
-) {
+export async function toggleWishlist(cardId: string, setId: string) {
   const supabase = await createClient();
 
   const {
@@ -132,7 +129,7 @@ export async function toggleWishlist(
       };
     }
 
-    revalidatePath(`/sets/${setId}/${cardId}`);
+    revalidateCardRoutes(setId, cardId);
 
     return {
       success: true,
@@ -154,7 +151,7 @@ export async function toggleWishlist(
     };
   }
 
-  revalidatePath(`/sets/${setId}/${cardId}`);
+  revalidateCardRoutes(setId, cardId);
 
   return {
     success: true,
