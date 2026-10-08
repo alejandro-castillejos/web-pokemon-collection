@@ -1,6 +1,5 @@
 import Link from "next/link";
 import GlassPanel from "@/components/ui/GlassPanel";
-import GlassButton from "@/components/ui/GlassButton";
 import PokemonCard from "@/components/pokemon/PokemonCard";
 import { getSet } from "@/lib/tcgdex";
 
@@ -19,8 +18,11 @@ export default function SetDetailsPage({
   ownedCardIds = new Set<string>(),
   wishlistCardIds = new Set<string>(),
 }: SetDetailsPageProps) {
-  const cards = set.cards ?? [];
+  const allCards = set.cards ?? [];
   const isCollection = basePath === "/collection";
+  const cards = isCollection
+    ? allCards.filter((card) => ownedCardIds.has(card.id))
+    : allCards;
   const owned = ownedCardIds.size;
   const progress =
     set.cardCount.total > 0
@@ -96,37 +98,20 @@ export default function SetDetailsPage({
           </div>
         </section>
 
-        <section className="mb-8">
-          <div className="flex flex-wrap items-center gap-3">
-            <GlassButton>Todas</GlassButton>
-
-            <button
-              type="button"
-              className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
-            >
-              Me faltan
-            </button>
-
-            <button
-              type="button"
-              className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
-            >
-              Colección
-            </button>
-
-            <button
-              type="button"
-              className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
-            >
-              Wishlist
-            </button>
-          </div>
-        </section>
-
         <section className="pb-16">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {cards.map((card) => (
-              <PokemonCard
+          {cards.length === 0 ? (
+            <GlassPanel strong className="p-10 text-center sm:p-16">
+              <h2 className="text-xl font-semibold text-zinc-900">
+                No tienes cartas de este set
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                Agrega cartas desde la sección de Sets para verlas aquí.
+              </p>
+            </GlassPanel>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {cards.map((card) => (
+                <PokemonCard
                 key={card.id}
                 setId={set.id}
                 cardId={card.id}
@@ -137,8 +122,9 @@ export default function SetDetailsPage({
                 wishlist={wishlistCardIds.has(card.id)}
                 basePath={basePath}
               />
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <footer className="border-t border-black/5 py-5 text-xs text-zinc-400">
