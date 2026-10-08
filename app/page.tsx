@@ -355,19 +355,23 @@ export default async function Home() {
             ) : (
               <div className="rounded-2xl border border-black/5 bg-white/45 p-6 text-center">
                 <p className="text-sm font-semibold text-zinc-700">
-                  Aún no has añadido cartas
+                  {user
+                    ? "Aún no has añadido cartas"
+                    : "Crea tu cuenta o inicia sesión para empezar tu colección"}
                 </p>
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
-                  Tus últimas cartas aparecerán aquí.
+                  {user
+                    ? "Tus últimas cartas aparecerán aquí."
+                    : "Guarda tus cartas y consulta tu colección en cualquier momento."}
                 </p>
               </div>
             )}
 
             <Link
-              href="/collection"
+              href={user ? "/collection" : "/login"}
               className="mt-5 flex w-full items-center justify-center rounded-2xl py-3 text-sm font-semibold text-zinc-800 transition hover:bg-black/5"
             >
-              Ver colección
+              {user ? "Ver colección" : "Iniciar sesión"}
               <span className="ml-2">→</span>
             </Link>
           </GlassPanel>
