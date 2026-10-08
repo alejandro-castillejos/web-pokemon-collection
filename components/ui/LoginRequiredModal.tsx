@@ -1,50 +1,74 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 
 interface LoginRequiredModalProps {
   open: boolean;
   action: "collection" | "wishlist";
   onClose: () => void;
+  errorMessage?: string | null;
 }
 
 export default function LoginRequiredModal({
   open,
   action,
   onClose,
+  errorMessage,
 }: LoginRequiredModalProps) {
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [open, onClose]);
+
   if (!open) {
     return null;
   }
 
+  const requiresLogin = !errorMessage;
+
   const message =
-    action === "collection"
+    errorMessage ??
+    (action === "collection"
       ? "Inicia sesión para agregar esta carta a tu colección."
-      : "Inicia sesión para agregar esta carta a tu wishlist.";
+      : "Inicia sesión para agregar esta carta a tu wishlist.");
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 px-5 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 px-5 backdrop-blur-[3px]"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="login-required-title"
+      aria-labelledby="action-modal-title"
       onMouseDown={onClose}
     >
       <div
-        className="glass-strong w-full max-w-sm rounded-[30px] p-6 shadow-2xl shadow-black/15"
+        className="glass-strong w-full max-w-sm rounded-[30px] p-6 shadow-2xl shadow-black/15 animate-[modalIn_180ms_ease-out]"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
-              Acceso requerido
+              {requiresLogin ? "Acceso requerido" : "Aviso"}
             </p>
 
             <h2
-              id="login-required-title"
+              id="action-modal-title"
               className="mt-2 text-xl font-bold tracking-tight text-zinc-900"
             >
-              Inicia sesión
+              {requiresLogin ? "Inicia sesión" : "No se pudo completar la acción"}
             </h2>
 
             <p className="mt-2 text-sm leading-6 text-zinc-500">
@@ -75,20 +99,22 @@ export default function LoginRequiredModal({
         </div>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <Link
-            href="/login"
-            onClick={onClose}
-            className="yellow-button flex items-center justify-center rounded-full px-5 py-3.5 text-sm font-bold text-[#111111]"
-          >
-            Iniciar sesión
-          </Link>
+          {requiresLogin ? (
+            <Link
+              href="/login"
+              onClick={onClose}
+              className="yellow-button flex items-center justify-center rounded-full px-5 py-3.5 text-sm font-bold text-[#111111]"
+            >
+              Iniciar sesión
+            </Link>
+          ) : null}
 
           <button
             type="button"
             onClick={onClose}
-            className="glass-hover glass flex items-center justify-center rounded-full px-5 py-3.5 text-sm font-semibold text-zinc-800"
+            className={`glass-hover glass flex items-center justify-center rounded-full px-5 py-3.5 text-sm font-semibold text-zinc-800 ${requiresLogin ? "" : "sm:col-span-2"}`}
           >
-            Cancelar
+            Cerrar
           </button>
         </div>
       </div>
