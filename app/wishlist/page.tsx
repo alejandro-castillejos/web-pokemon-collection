@@ -69,7 +69,7 @@ export default async function WishlistPage({
 
   if (!user) {
     redirect(
-      "/login?message=Inicia sesión para ver tu wishlist"
+      "/login?reason=wishlist"
     );
   }
 
