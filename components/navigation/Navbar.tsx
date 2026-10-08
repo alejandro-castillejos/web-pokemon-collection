@@ -24,7 +24,7 @@ export default function Navbar() {
   const inactiveClass = "text-zinc-600 hover:bg-white/50 hover:text-zinc-900";
 
   return (
-    <header className="glass sticky top-4 z-30 mx-4 mb-6 rounded-[28px] px-4 py-3 sm:mx-6 sm:px-5 lg:mx-8">
+    <header className="glass-strong sticky top-4 z-30 mx-4 mb-6 rounded-[28px] px-4 py-3 sm:mx-6 sm:px-5 lg:mx-8">
       <div className="flex items-center justify-between gap-4">
         <Link href="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111111] text-[10px] font-bold tracking-tight text-white">
