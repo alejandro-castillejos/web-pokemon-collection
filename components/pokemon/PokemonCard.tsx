@@ -11,6 +11,7 @@ interface PokemonCardProps {
   image?: string;
   owned?: boolean;
   wishlist?: boolean;
+  setName?: string;
   basePath?: "/sets" | "/collection" | "/wishlist";
 }
 
@@ -22,6 +23,7 @@ export default function PokemonCard({
   image,
   owned = false,
   wishlist = false,
+  setName,
   basePath = "/sets",
 }: PokemonCardProps) {
   return (
@@ -41,7 +43,12 @@ export default function PokemonCard({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-zinc-900">{name}</p>
-              <p className="mt-1 text-xs text-zinc-400">#{number}</p>
+              <p className="mt-1 truncate text-xs text-zinc-400">#{number}</p>
+              {setName && (
+                <p className="mt-1 truncate text-[11px] text-zinc-500">
+                  {setName}
+                </p>
+              )}
             </div>
           </div>
         </div>
