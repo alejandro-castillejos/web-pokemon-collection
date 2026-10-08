@@ -35,7 +35,7 @@ export default function SetDetailsPage({
       <div className="soft-glow right-[-120px] top-[300px] h-80 w-80 bg-yellow-200/30" />
 
       <div className="relative mx-auto min-h-screen max-w-[1400px] px-5 py-4 sm:px-8 lg:px-10">
-        <section className="py-10 sm:py-14">
+        <section className="pb-10 pt-0 sm:pb-14">
           <Link
             href={basePath}
             className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
