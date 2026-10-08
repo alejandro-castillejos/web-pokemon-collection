@@ -57,7 +57,6 @@ export default async function Home() {
   if (totalCards > 0) {
     const sets = await getAllSets("recent");
 
-    const setIds = new Set(sets.map((set) => set.id));
     const ownedBySet = new Map<string, number>();
 
     for (const row of collection) {
@@ -92,7 +91,7 @@ export default async function Home() {
 
     totalSets = ownedSets.length;
     completedSets = ownedSets.filter(
-      (set) => set.progress >= 100
+      (set) => set.owned >= set.total
     ).length;
 
     bestSet =
@@ -153,10 +152,6 @@ export default async function Home() {
         image?: string;
       } => card !== null
     );
-
-    // Evitamos que variables calculadas que solo sirven para
-    // identificar sets válidos queden sin uso.
-    void setIds;
   }
 
   return (
@@ -276,8 +271,7 @@ export default async function Home() {
                         </Link>
 
                         <p className="mt-1 text-sm text-zinc-500">
-                          {bestSet.owned} de {bestSet.total} cartas ·{" "}
-                          {bestSet.progress}% completado
+                          {bestSet.owned} de {bestSet.total} cartas
                         </p>
                       </div>
 
