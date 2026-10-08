@@ -69,7 +69,7 @@ const currentCardSort: CardSortType =
 
   if (!user) {
     redirect(
-      "/login?message=Inicia sesión para ver tu colección"
+      "/login?reason=collection"
     );
   }
 
