@@ -180,6 +180,7 @@ const currentCardSort: CardSortType =
     localId: string;
     name: string;
     image?: string;
+    createdAt: string;
     setId: string;
   }> = [];
 
