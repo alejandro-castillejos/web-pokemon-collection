@@ -227,7 +227,7 @@ const currentCardSort: CardSortType =
     }
 
   return (
-    <main className="px-4 pb-10 pt-6 sm:px-6 lg:px-8">
+    <main className="px-4 pb-10 pt-0 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         {/* Encabezado */}
         <section className="mb-8">
