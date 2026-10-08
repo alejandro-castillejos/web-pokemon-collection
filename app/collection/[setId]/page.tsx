@@ -1,153 +1,113 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
-
 import GlassPanel from "@/components/ui/GlassPanel";
-import PokemonCard from "@/components/pokemon/PokemonCard";
-
+import SetDetailsPage from "@/components/pokemon/SetDetailsPage";
 import { getSet } from "@/lib/tcgdex";
 import { createClient } from "@/lib/supabase/server";
 
 interface CollectionSetPageProps {
-  params: Promise<{
-    setId: string;
-  }>;
+  params: Promise<{ setId: string }>;
 }
 
 export default async function CollectionSetPage({
   params,
 }: CollectionSetPageProps) {
   const { setId } = await params;
+  const supabase = await createClient();
 
-  const set = await getSet(setId);
+  const [set, authResult] = await Promise.all([
+    getSet(setId),
+    supabase.auth.getUser(),
+  ]);
 
   if (!set) {
-    notFound();
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f4f5f7] px-6">
+        <GlassPanel className="max-w-md rounded-[28px] p-8 text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">
+            Error
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-zinc-900">
+            Set no encontrado
+          </h1>
+          <p className="mt-3 text-sm text-zinc-500">
+            El set que intentaste abrir no existe.
+          </p>
+          <Link
+            href="/collection"
+            className="mt-6 inline-flex rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800"
+          >
+            Volver a colección
+          </Link>
+        </GlassPanel>
+      </main>
+    );
   }
-
-  const supabase = await createClient();
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = authResult;
 
   if (!user) {
-    redirect(
-      "/login?message=Inicia sesión para ver tu colección"
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f4f5f7] px-6">
+        <GlassPanel className="max-w-md rounded-[28px] p-8 text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-400">
+            Sesión requerida
+          </p>
+          <h1 className="mt-2 text-2xl font-bold text-zinc-900">
+            Inicia sesión para ver tu colección
+          </h1>
+          <Link
+            href="/login"
+            className="yellow-button mt-6 inline-flex rounded-full px-5 py-3 text-sm font-semibold"
+          >
+            Iniciar sesión
+          </Link>
+        </GlassPanel>
+      </main>
     );
   }
 
-  const cards = set.cards ?? [];
-  const cardIds = cards.map((card) => card.id);
-
-  let ownedCardIds = new Set<string>();
-  let wishlistCardIds = new Set<string>();
+  const cardIds = (set.cards ?? []).map((card) => card.id);
+  const ownedCardIds = new Set<string>();
+  const wishlistCardIds = new Set<string>();
 
   if (cardIds.length > 0) {
-    const [
-      { data: collectionRows, error: collectionError },
-      { data: wishlistRows, error: wishlistError },
-    ] = await Promise.all([
+    const [collectionResult, wishlistResult] = await Promise.all([
       supabase
         .from("collection")
         .select("card_id")
+        .eq("user_id", user.id)
         .in("card_id", cardIds),
-
       supabase
         .from("wishlist")
         .select("card_id")
+        .eq("user_id", user.id)
         .in("card_id", cardIds),
     ]);
 
-    if (collectionError) {
+    if (collectionResult.error) {
       throw new Error(
-        `Error obteniendo la colección: ${collectionError.message}`
+        `Error obteniendo la colección: ${collectionResult.error.message}`
       );
     }
 
-    if (wishlistError) {
+    if (wishlistResult.error) {
       throw new Error(
-        `Error obteniendo la wishlist: ${wishlistError.message}`
+        `Error obteniendo la wishlist: ${wishlistResult.error.message}`
       );
     }
 
-    ownedCardIds = new Set(
-      collectionRows?.map((row) => row.card_id) ?? []
-    );
-
-    wishlistCardIds = new Set(
-      wishlistRows?.map((row) => row.card_id) ?? []
-    );
+    collectionResult.data?.forEach((row) => ownedCardIds.add(row.card_id));
+    wishlistResult.data?.forEach((row) => wishlistCardIds.add(row.card_id));
   }
 
   return (
-    <main className="px-4 pb-10 pt-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Encabezado */}
-        <section className="mb-8">
-          <Link
-            href="/collection"
-            className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
-          >
-            <span>←</span>
-            <span>Mi colección</span>
-          </Link>
-
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="mb-2 text-sm font-medium text-zinc-500">
-                {set.name}
-              </p>
-
-              <h1 className="text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">
-                Mis cartas
-              </h1>
-
-              <p className="mt-2 text-sm text-zinc-500">
-                {ownedCardIds.size} de {set.cardCount.total} cartas
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Cartas */}
-        {ownedCardIds.size === 0 ? (
-          <GlassPanel strong className="p-10 text-center sm:p-16">
-            <div className="mx-auto max-w-md">
-              <h2 className="text-xl font-semibold text-zinc-900">
-                No tienes cartas de este set
-              </h2>
-
-              <p className="mt-2 text-sm leading-6 text-zinc-500">
-                Regresa a tu colección para explorar otros sets.
-              </p>
-
-              <Link
-                href="/collection"
-                className="yellow-button mt-6 inline-flex rounded-full px-5 py-2.5 text-sm font-semibold"
-              >
-                Volver a mi colección
-              </Link>
-            </div>
-          </GlassPanel>
-        ) : (
-          <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {cards
-              .filter((card) => ownedCardIds.has(card.id))
-              .map((card) => (
-                <PokemonCard
-                  key={card.id}
-                  setId={set.id}
-                  cardId={card.id}
-                  number={String(card.localId)}
-                  name={card.name}
-                  image={card.image}
-                  owned={true}
-                  wishlist={wishlistCardIds.has(card.id)}
-                />
-              ))}
-          </section>
-        )}
-      </div>
-    </main>
+    <SetDetailsPage
+      set={set}
+      basePath="/collection"
+      ownedCardIds={ownedCardIds}
+      wishlistCardIds={wishlistCardIds}
+    />
   );
 }
