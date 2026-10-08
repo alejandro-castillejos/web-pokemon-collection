@@ -88,7 +88,7 @@ export default function SetDetailsPage({
                   style={{
                     width:
                       owned > 0
-                        ? `${Math.max(progress, 3)}%`
+                        ? `${Math.max(progress, 1)}%`
                         : "0%",
                   }}
                 />
