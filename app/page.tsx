@@ -202,7 +202,11 @@ export default async function Home() {
             ) : (
               <>
                 <GlassPanel className="mt-8 flex max-w-2xl overflow-hidden rounded-[24px]">
-                  <div className="flex min-w-0 flex-1 items-center gap-3 px-4 py-4 sm:px-5">
+                  <Link
+                    href="/collection?view=sets"
+                    className="flex min-w-0 flex-1 items-center gap-3 px-4 py-4 transition hover:bg-white/30 sm:px-5"
+                    aria-label="Ver sets de mi colección"
+                  >
                     <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-zinc-700 sm:flex">
                       <svg
                         viewBox="0 0 24 24"
@@ -225,9 +229,13 @@ export default async function Home() {
                         Sets
                       </p>
                     </div>
-                  </div>
+                  </Link>
 
-                  <div className="flex min-w-0 flex-1 items-center gap-3 border-l border-black/5 px-4 py-4 sm:px-5">
+                  <Link
+                    href="/collection?view=cards"
+                    className="flex min-w-0 flex-1 items-center gap-3 border-l border-black/5 px-4 py-4 transition hover:bg-white/30 sm:px-5"
+                    aria-label="Ver cartas de mi colección"
+                  >
                     <div className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-black/5 text-zinc-700 sm:flex">
                       <svg
                         viewBox="0 0 24 24"
@@ -251,7 +259,7 @@ export default async function Home() {
                         Cartas
                       </p>
                     </div>
-                  </div>
+                  </Link>
 
                   <Link
                     href={bestSet ? `/sets/${bestSet.id}` : "/sets"}
@@ -271,7 +279,7 @@ export default async function Home() {
                         className="h-5 w-5"
                         aria-hidden="true"
                       >
-                        <path d="M12 3.5 14 8l4.8.5-3.6 3.2 1 4.7L12 14l-4.2 2.4 1-4.7L5.2 8.5 10 8l2-4.5Z" />
+                        <path d="M12 3.5 14 8l4.8.5-3.6 3.2 1 4.7L12 14l-4.2 2.4 1 4.7L5.2 8.5 10 8l2-4.5Z" />
                         <path d="M7 19h10" />
                       </svg>
                     </div>
