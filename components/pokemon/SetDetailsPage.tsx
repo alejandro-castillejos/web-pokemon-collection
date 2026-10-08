@@ -68,7 +68,7 @@ export default function SetDetailsPage({
             href={basePath}
             className="inline-flex items-center gap-2 text-sm font-medium text-zinc-500 transition hover:text-zinc-900"
           >
-            ← Volver a {isCollection ? "colección" : "sets"}
+            ← Volver a {isCollection ? "colección" : isWishlist ? "wishlist" : "sets"}
           </Link>
 
           <div className="mt-3 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -115,7 +115,7 @@ export default function SetDetailsPage({
                   className="h-full rounded-full bg-[#f2c72e]"
                   style={{
                     width:
-                      owned > 0
+                      displayedCount > 0
                         ? `${Math.max(progress, 1)}%`
                         : "0%",
                   }}
