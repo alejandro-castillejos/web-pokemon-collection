@@ -70,3 +70,57 @@ export function getSetIdFromCardId(cardId: string): string {
 
   return cardId.slice(0, separatorIndex);
 }
+export interface TCGdexCardBrief {
+  id: string;
+  localId: string;
+  name: string;
+  image?: string;
+}
+
+export async function searchCards(
+  query: string
+): Promise<TCGdexCardBrief[]> {
+  const normalizedQuery = query.trim();
+
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  const encodedQuery = encodeURIComponent(normalizedQuery);
+
+  const [nameResponse, localIdResponse] = await Promise.all([
+    fetch(
+      `https://api.tcgdex.net/v2/en/cards?name=${encodedQuery}`,
+      {
+        next: {
+          revalidate: 300,
+        },
+      }
+    ),
+    fetch(
+      `https://api.tcgdex.net/v2/en/cards?localId=${encodedQuery}`,
+      {
+        next: {
+          revalidate: 300,
+        },
+      }
+    ),
+  ]);
+
+  if (!nameResponse.ok || !localIdResponse.ok) {
+    throw new Error("Error buscando cartas en TCGdex.");
+  }
+
+  const [nameCards, localIdCards] = await Promise.all([
+    nameResponse.json() as Promise<TCGdexCardBrief[]>,
+    localIdResponse.json() as Promise<TCGdexCardBrief[]>,
+  ]);
+
+  const cards = new Map<string, TCGdexCardBrief>();
+
+  for (const card of [...nameCards, ...localIdCards]) {
+    cards.set(card.id, card);
+  }
+
+  return [...cards.values()];
+}
