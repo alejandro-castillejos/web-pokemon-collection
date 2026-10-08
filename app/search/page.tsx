@@ -35,6 +35,44 @@ function matchesQuery(value: string, query: string) {
     .includes(query.toLocaleLowerCase("es"));
 }
 
+async function resolveCardResults(
+  cards: Array<{
+    id: string;
+    localId: string;
+    name: string;
+    image?: string;
+  }>
+) {
+  const resolved = await Promise.all(
+    cards.slice(0, 12).map(async (card) => {
+      try {
+        const fullCard = await getCard(card.id);
+
+        if (!fullCard) {
+          return card;
+        }
+
+        return {
+          id: fullCard.id,
+          localId: String(fullCard.localId),
+          name: fullCard.name,
+          image: fullCard.image,
+          setId: fullCard.set.id,
+          setName: fullCard.set.name,
+        };
+      } catch {
+        return {
+          ...card,
+          setId: getSetIdFromCardId(card.id),
+          setName: getSetIdFromCardId(card.id),
+        };
+      }
+    })
+  );
+
+  return resolved;
+}
+
 export default async function SearchPage({
   searchParams,
 }: SearchPageProps) {
@@ -158,19 +196,23 @@ export default async function SearchPage({
       sets.map((set) => [set.id, set.name])
     );
 
-    const matchingCards = cards
+    const matchingCardBriefs = cards
       .filter((card) => savedCardIds.has(card.id))
-      .slice(0, 12)
-      .map((card) => ({
-        id: card.id,
-        setId: getSetIdFromCardId(card.id),
-        localId: card.localId,
-        name: card.name,
-        image: card.image,
-        setName:
-          setNames.get(getSetIdFromCardId(card.id)) ??
-          getSetIdFromCardId(card.id),
-      }));
+      .slice(0, 12);
+
+    const matchingCards = (
+      await resolveCardResults(matchingCardBriefs)
+    ).map((card) => ({
+      id: card.id,
+      setId: card.setId,
+      localId: card.localId,
+      name: card.name,
+      image: card.image,
+      setName:
+        card.setName ??
+        setNames.get(card.setId) ??
+        card.setId,
+    }));
 
     return (
       <SearchResults
@@ -257,18 +299,21 @@ export default async function SearchPage({
     sets.map((set) => [set.id, set.name])
   );
 
-  const matchingCards = cards
-    .slice(0, 12)
-    .map((card) => ({
-      id: card.id,
-      setId: getSetIdFromCardId(card.id),
-      localId: card.localId,
-      name: card.name,
-      image: card.image,
-      setName:
-        setNames.get(getSetIdFromCardId(card.id)) ??
-        getSetIdFromCardId(card.id),
-    }));
+  const matchingCardBriefs = cards.slice(0, 12);
+
+  const matchingCards = (
+    await resolveCardResults(matchingCardBriefs)
+  ).map((card) => ({
+    id: card.id,
+    setId: card.setId,
+    localId: card.localId,
+    name: card.name,
+    image: card.image,
+    setName:
+      card.setName ??
+      setNames.get(card.setId) ??
+      card.setId,
+  }));
 
   return (
     <SearchResults
@@ -409,9 +454,6 @@ function SearchResults({
                         wishlist={wishlistCardIds.has(card.id)}
                         basePath={cardBasePath}
                       />
-                      <p className="pointer-events-none absolute bottom-[88px] left-6 right-6 truncate text-[10px] font-medium text-zinc-400">
-                        {card.setName}
-                      </p>
                     </div>
                   ))}
                 </div>
