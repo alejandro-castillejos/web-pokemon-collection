@@ -80,7 +80,7 @@ export default function SetCard({
                 style={{
                   width:
                     ownedCards !== undefined && ownedCards > 0
-                      ? `${Math.max(progress, 3)}%`
+                      ? `${Math.max(progress, 1)}%`
                       : "0%",
                 }}
               />
