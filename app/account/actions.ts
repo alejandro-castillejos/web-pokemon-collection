@@ -1,10 +1,17 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export async function changePassword(formData: FormData) {
+export interface PasswordChangeResult {
+  success: boolean;
+  message: string;
+  sessionExpired?: boolean;
+}
+
+export async function changePassword(
+  formData: FormData
+): Promise<PasswordChangeResult> {
   const supabase = await createClient();
 
   const {
@@ -12,7 +19,11 @@ export async function changePassword(formData: FormData) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    return {
+      success: false,
+      message: "Tu sesión ha expirado. Inicia sesión de nuevo.",
+      sessionExpired: true,
+    };
   }
 
   const currentPassword = String(
@@ -26,27 +37,31 @@ export async function changePassword(formData: FormData) {
   );
 
   if (!currentPassword || !newPassword || !confirmPassword) {
-    redirect(
-      "/account?passwordError=Completa todos los campos de contraseña."
-    );
+    return {
+      success: false,
+      message: "Completa todos los campos de contraseña.",
+    };
   }
 
   if (newPassword.length < 6) {
-    redirect(
-      "/account?passwordError=La nueva contraseña debe tener al menos 6 caracteres."
-    );
+    return {
+      success: false,
+      message: "La nueva contraseña debe tener al menos 6 caracteres.",
+    };
   }
 
   if (newPassword !== confirmPassword) {
-    redirect(
-      "/account?passwordError=Las nuevas contraseñas no coinciden."
-    );
+    return {
+      success: false,
+      message: "Las nuevas contraseñas no coinciden.",
+    };
   }
 
   if (currentPassword === newPassword) {
-    redirect(
-      "/account?passwordError=La nueva contraseña debe ser diferente a la actual."
-    );
+    return {
+      success: false,
+      message: "La nueva contraseña debe ser diferente a la actual.",
+    };
   }
 
   const { error } = await supabase.auth.updateUser({
@@ -55,15 +70,16 @@ export async function changePassword(formData: FormData) {
   });
 
   if (error) {
-    redirect(
-      `/account?passwordError=${encodeURIComponent(
-        "La contraseña actual no es correcta o no se pudo actualizar."
-      )}`
-    );
+    return {
+      success: false,
+      message: "La contraseña actual no es correcta o no se pudo actualizar.",
+    };
   }
 
-  revalidatePath("/account");
-  redirect("/account?passwordSuccess=Contraseña actualizada correctamente.");
+  return {
+    success: true,
+    message: "Contraseña actualizada correctamente.",
+  };
 }
 
 export async function logout() {
