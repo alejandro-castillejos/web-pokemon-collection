@@ -6,6 +6,7 @@ import PokemonCard from "@/components/pokemon/PokemonCard";
 
 import {
   getAllSets,
+  getCard,
   getSet,
   getSetIdFromCardId,
   searchCards,
@@ -34,6 +35,15 @@ function matchesQuery(value: string, query: string) {
     .includes(query.toLocaleLowerCase("es"));
 }
 
+interface ResolvedSearchCard {
+  id: string;
+  setId: string;
+  localId: string;
+  name: string;
+  image?: string;
+  setName: string;
+}
+
 async function resolveCardResults(
   cards: Array<{
     id: string;
@@ -41,14 +51,20 @@ async function resolveCardResults(
     name: string;
     image?: string;
   }>
-) {
-  const resolved = await Promise.all(
-    cards.slice(0, 12).map(async (card) => {
+): Promise<ResolvedSearchCard[]> {
+  return Promise.all(
+    cards.slice(0, 12).map(async (card): Promise<ResolvedSearchCard> => {
+      const fallbackSetId = getSetIdFromCardId(card.id);
+
       try {
         const fullCard = await getCard(card.id);
 
         if (!fullCard) {
-          return card;
+          return {
+            ...card,
+            setId: fallbackSetId,
+            setName: fallbackSetId,
+          };
         }
 
         return {
@@ -62,14 +78,12 @@ async function resolveCardResults(
       } catch {
         return {
           ...card,
-          setId: getSetIdFromCardId(card.id),
-          setName: getSetIdFromCardId(card.id),
+          setId: fallbackSetId,
+          setName: fallbackSetId,
         };
       }
     })
   );
-
-  return resolved;
 }
 
 export default async function SearchPage({
