@@ -1,17 +1,25 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export async function login(formData: FormData) {
+export type AuthActionResult =
+  | { success: true; redirectTo: string }
+  | { success: false; error: string };
+
+export async function login(
+  formData: FormData
+): Promise<AuthActionResult> {
   const supabase = await createClient();
 
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect("/login?error=Correo y contraseña son obligatorios");
+    return {
+      success: false,
+      error: "Correo y contraseña son obligatorios.",
+    };
   }
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -20,30 +28,40 @@ export async function login(formData: FormData) {
   });
 
   if (error) {
-    redirect(
-      `/login?error=${encodeURIComponent(error.message)}`
-    );
+    return {
+      success: false,
+      error: "No se pudo iniciar sesión. Revisa tu correo y contraseña.",
+    };
   }
 
   revalidatePath("/", "layout");
 
-  redirect("/");
+  return {
+    success: true,
+    redirectTo: "/",
+  };
 }
 
-export async function signup(formData: FormData) {
+export async function signup(
+  formData: FormData
+): Promise<AuthActionResult> {
   const supabase = await createClient();
 
-  const email = String(formData.get("email") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
 
   if (!email || !password) {
-    redirect("/login?error=Correo y contraseña son obligatorios");
+    return {
+      success: false,
+      error: "Correo y contraseña son obligatorios.",
+    };
   }
 
   if (password.length < 6) {
-    redirect(
-      "/login?error=La contraseña debe tener al menos 6 caracteres"
-    );
+    return {
+      success: false,
+      error: "La contraseña debe tener al menos 6 caracteres.",
+    };
   }
 
   const { error } = await supabase.auth.signUp({
@@ -55,14 +73,20 @@ export async function signup(formData: FormData) {
   });
 
   if (error) {
-    redirect(
-      `/login?error=${encodeURIComponent(error.message)}`
-    );
+    return {
+      success: false,
+      error: error.message,
+    };
   }
 
   revalidatePath("/", "layout");
 
-  redirect(
-    "/login?status=signup&message=Revisa tu correo para confirmar tu cuenta."
-  );
+  return {
+    success: true,
+    redirectTo:
+      "/login?status=signup&message=" +
+      encodeURIComponent(
+        "Cuenta creada. Revisa tu correo para confirmar tu cuenta."
+      ),
+  };
 }
