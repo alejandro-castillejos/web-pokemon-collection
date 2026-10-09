@@ -2,9 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import GlassPanel from "@/components/ui/GlassPanel";
-import PasswordFields from "@/components/account/PasswordFields";
+import PasswordChangeForm from "@/components/account/PasswordChangeForm";
 import { createClient } from "@/lib/supabase/server";
-import { changePassword, logout } from "./actions";
+import { logout } from "./actions";
 
 interface AccountPageProps {
   searchParams: Promise<{
@@ -104,38 +104,7 @@ export default async function AccountPage({
                 </svg>
               </summary>
 
-              <div className="pt-5">
-                <p className="mb-5 text-sm leading-6 text-zinc-500">
-                  Verifica tu contraseña actual antes de establecer una nueva.
-                </p>
-
-                {params.passwordSuccess && (
-                  <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-800">
-                    {params.passwordSuccess}
-                  </div>
-                )}
-
-                {params.passwordError && (
-                  <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800">
-                    {params.passwordError}
-                  </div>
-                )}
-
-                <form action={changePassword} className="space-y-4">
-                  <PasswordFields
-                    currentPasswordId="currentPassword"
-                    newPasswordId="newPassword"
-                    confirmPasswordId="confirmPassword"
-                  />
-
-                  <button
-                    type="submit"
-                    className="yellow-button w-full rounded-full px-5 py-3.5 text-sm font-bold text-[#111111]"
-                  >
-                    Cambiar contraseña
-                  </button>
-                </form>
-              </div>
+              <PasswordChangeForm />
             </details>
 
             <div className="my-6 border-t border-black/5" />
