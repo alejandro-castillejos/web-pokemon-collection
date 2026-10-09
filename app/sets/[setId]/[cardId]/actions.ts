@@ -3,17 +3,58 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
+type ToggleResult =
+  | {
+      success: true;
+      requiresLogin: false;
+      error: null;
+      owned?: boolean;
+      wishlist?: boolean;
+    }
+  | {
+      success: false;
+      requiresLogin: boolean;
+      error: string;
+      owned?: boolean;
+      wishlist?: boolean;
+    };
+
 function revalidateCardRoutes(setId: string, cardId: string) {
   revalidatePath(`/sets/${setId}/${cardId}`);
   revalidatePath(`/collection/${setId}/${cardId}`);
-  revalidatePath(`/wishlist`);
+  revalidatePath("/collection");
+  revalidatePath("/wishlist");
   revalidatePath(`/wishlist/${setId}`);
   revalidatePath(`/wishlist/${setId}/${cardId}`);
 }
 
-export async function toggleCollection(cardId: string, setId: string) {
-  const supabase = await createClient();
+function isValidCardReference(cardId: string, setId: string) {
+  const validId = /^[A-Za-z0-9_.-]{1,100}$/;
+  if (!validId.test(cardId) || !validId.test(setId)) {
+    return false;
+  }
 
+  const separatorIndex = cardId.indexOf("-");
+  return (
+    separatorIndex > 0 &&
+    cardId.slice(0, separatorIndex).toLowerCase() === setId.toLowerCase()
+  );
+}
+
+export async function toggleCollection(
+  cardId: string,
+  setId: string
+): Promise<ToggleResult> {
+  if (!isValidCardReference(cardId, setId)) {
+    return {
+      success: false,
+      requiresLogin: false,
+      owned: false,
+      error: "La referencia de la carta no es válida.",
+    };
+  }
+
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -21,8 +62,8 @@ export async function toggleCollection(cardId: string, setId: string) {
   if (!user) {
     return {
       success: false,
-      owned: false,
       requiresLogin: true,
+      owned: false,
       error: "Inicia sesión para agregar esta carta a tu colección.",
     };
   }
@@ -37,9 +78,9 @@ export async function toggleCollection(cardId: string, setId: string) {
   if (findError) {
     return {
       success: false,
-      owned: false,
       requiresLogin: false,
-      error: findError.message,
+      owned: false,
+      error: "No se pudo consultar tu colección. Inténtalo de nuevo.",
     };
   }
 
@@ -53,18 +94,17 @@ export async function toggleCollection(cardId: string, setId: string) {
     if (error) {
       return {
         success: false,
-        owned: true,
         requiresLogin: false,
-        error: error.message,
+        owned: true,
+        error: "No se pudo quitar la carta de tu colección.",
       };
     }
 
     revalidateCardRoutes(setId, cardId);
-
     return {
       success: true,
-      owned: false,
       requiresLogin: false,
+      owned: false,
       error: null,
     };
   }
@@ -77,23 +117,35 @@ export async function toggleCollection(cardId: string, setId: string) {
   if (error) {
     return {
       success: false,
+      requiresLogin: false,
       owned: false,
-      error: error.message,
+      error: "No se pudo agregar la carta a tu colección.",
     };
   }
 
   revalidateCardRoutes(setId, cardId);
-
   return {
     success: true,
+    requiresLogin: false,
     owned: true,
     error: null,
   };
 }
 
-export async function toggleWishlist(cardId: string, setId: string) {
-  const supabase = await createClient();
+export async function toggleWishlist(
+  cardId: string,
+  setId: string
+): Promise<ToggleResult> {
+  if (!isValidCardReference(cardId, setId)) {
+    return {
+      success: false,
+      requiresLogin: false,
+      wishlist: false,
+      error: "La referencia de la carta no es válida.",
+    };
+  }
 
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -101,8 +153,8 @@ export async function toggleWishlist(cardId: string, setId: string) {
   if (!user) {
     return {
       success: false,
-      wishlist: false,
       requiresLogin: true,
+      wishlist: false,
       error: "Inicia sesión para agregar esta carta a tu wishlist.",
     };
   }
@@ -117,9 +169,9 @@ export async function toggleWishlist(cardId: string, setId: string) {
   if (findError) {
     return {
       success: false,
-      wishlist: false,
       requiresLogin: false,
-      error: findError.message,
+      wishlist: false,
+      error: "No se pudo consultar tu wishlist. Inténtalo de nuevo.",
     };
   }
 
@@ -133,18 +185,17 @@ export async function toggleWishlist(cardId: string, setId: string) {
     if (error) {
       return {
         success: false,
-        wishlist: true,
         requiresLogin: false,
-        error: error.message,
+        wishlist: true,
+        error: "No se pudo quitar la carta de tu wishlist.",
       };
     }
 
     revalidateCardRoutes(setId, cardId);
-
     return {
       success: true,
-      wishlist: false,
       requiresLogin: false,
+      wishlist: false,
       error: null,
     };
   }
@@ -157,15 +208,16 @@ export async function toggleWishlist(cardId: string, setId: string) {
   if (error) {
     return {
       success: false,
+      requiresLogin: false,
       wishlist: false,
-      error: error.message,
+      error: "No se pudo agregar la carta a tu wishlist.",
     };
   }
 
   revalidateCardRoutes(setId, cardId);
-
   return {
     success: true,
+    requiresLogin: false,
     wishlist: true,
     error: null,
   };
