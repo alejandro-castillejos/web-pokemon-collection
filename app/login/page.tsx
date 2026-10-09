@@ -16,25 +16,33 @@ export default async function LoginPage({
 }: LoginPageProps) {
   const params = await searchParams;
 
-  const message = params.message;
   const error = params.error;
 
-  const contextualMessage =
+  const initialNotice =
     params.reason === "collection"
-      ? "Inicia sesión para ver tu colección"
+      ? {
+          title: "Inicia sesión para continuar",
+          message: "Inicia sesión para ver tu colección",
+          tone: "info" as const,
+        }
       : params.reason === "wishlist"
-        ? "Inicia sesión para ver tu wishlist"
-        : message;
-
-  const contextualTitle =
-    params.reason === "collection" ||
-    params.reason === "wishlist"
-      ? "Inicia sesión para continuar"
-      : params.status === "logout"
-        ? "Sesión cerrada"
-        : params.status === "signup"
-          ? "Cuenta creada"
-          : "Aviso";
+        ? {
+            title: "Inicia sesión para continuar",
+            message: "Inicia sesión para ver tu wishlist",
+            tone: "info" as const,
+          }
+        : params.message
+          ? {
+              title:
+                params.status === "logout"
+                  ? "Sesión cerrada"
+                  : params.status === "signup"
+                    ? "Cuenta creada"
+                    : "Aviso",
+              message: params.message,
+              tone: "success" as const,
+            }
+          : null;
 
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
@@ -63,24 +71,7 @@ export default async function LoginPage({
               </p>
             </div>
 
-            {contextualMessage && (
-              <div
-                className={`mb-5 rounded-2xl px-4 py-4 text-sm ${
-                  params.reason === "collection" ||
-                  params.reason === "wishlist"
-                    ? "border border-yellow-200 bg-yellow-50 text-yellow-900"
-                    : "border border-emerald-200 bg-emerald-50 text-emerald-800"
-                }`}
-              >
-                <p className="font-semibold">{contextualTitle}</p>
-
-                <p className="mt-1 leading-6">
-                  {contextualMessage}
-                </p>
-              </div>
-            )}
-
-            <LoginForm initialError={error} />
+            <LoginForm initialError={error} initialNotice={initialNotice} />
 
             <div className="mt-6 border-t border-black/5 pt-6 text-center">
               <Link
