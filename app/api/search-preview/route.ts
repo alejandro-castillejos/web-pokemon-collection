@@ -43,6 +43,16 @@ function normalizeScope(value: string | null): SearchScope {
   return "all";
 }
 
+function jsonNoStore(data: unknown, init?: ResponseInit) {
+  const headers = new Headers(init?.headers);
+  headers.set("Cache-Control", "private, no-store, max-age=0");
+
+  return jsonNoStore(data, {
+    ...init,
+    headers,
+  });
+}
+
 function matches(value: string, query: string) {
   return value
     .toLocaleLowerCase("es")
@@ -75,14 +85,25 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("setId")?.trim() ?? "";
 
   if (query.length < 2) {
-    return NextResponse.json([]);
+    return jsonNoStore([]);
+  }
+
+  if (query.length > 80) {
+    return jsonNoStore(
+      { error: "La búsqueda no puede superar los 80 caracteres." },
+      { status: 400 }
+    );
+  }
+
+  if (setId && !/^[A-Za-z0-9_.-]{1,100}$/.test(setId)) {
+    return jsonNoStore([]);
   }
 
   try {
     if (scope === "sets") {
       const sets = await getAllSets("recent");
 
-      return NextResponse.json(
+      return jsonNoStore(
         sets
           .filter(
             (set) =>
@@ -102,13 +123,13 @@ export async function GET(request: NextRequest) {
 
     if (scope === "set-cards") {
       if (!setId) {
-        return NextResponse.json([]);
+        return jsonNoStore([]);
       }
 
       const set = await getSet(setId);
 
       if (!set) {
-        return NextResponse.json([]);
+        return jsonNoStore([]);
       }
 
       const matchingCards = (set.cards ?? [])
@@ -125,7 +146,7 @@ export async function GET(request: NextRequest) {
         )
       );
 
-      return NextResponse.json(
+      return jsonNoStore(
         resolved
           .filter((card): card is NonNullable<typeof card> => card !== null)
           .map<PreviewResult>((card) => ({
@@ -151,7 +172,7 @@ export async function GET(request: NextRequest) {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        return NextResponse.json(
+        return jsonNoStore(
           {
             error: "Debes iniciar sesión para buscar aquí.",
           },
@@ -161,7 +182,8 @@ export async function GET(request: NextRequest) {
 
       const { data, error } = await supabase
         .from(scope)
-        .select("card_id");
+        .select("card_id")
+        .eq("user_id", user.id);
 
       if (error) {
         throw error;
@@ -239,7 +261,7 @@ export async function GET(request: NextRequest) {
           href: `/${scope}/${set.id}`,
         }));
 
-      return NextResponse.json(
+      return jsonNoStore(
         [...cardResults, ...setResults].slice(0, 3)
       );
     }
@@ -260,16 +282,16 @@ export async function GET(request: NextRequest) {
           href: `/sets/${set.id}`,
         }));
 
-      return NextResponse.json(
+      return jsonNoStore(
         [...cardResults, ...setResults].slice(0, 3)
       );
     }
 
-    return NextResponse.json(cardResults.slice(0, 3));
+    return jsonNoStore(cardResults.slice(0, 3));
   } catch (error) {
     console.error("Error en búsqueda previa:", error);
 
-    return NextResponse.json(
+    return jsonNoStore(
       {
         error: "No se pudo completar la búsqueda.",
       },
