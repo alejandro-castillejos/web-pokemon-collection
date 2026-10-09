@@ -42,18 +42,19 @@ export default async function SetsPage({
     getAllSets(
       currentSort === "progress" ? "recent" : currentSort
     ),
-    supabase.auth.getClaims(),
+    supabase.auth.getUser(),
   ]);
 
-  const { data: claims } = authResult;
+  const { data: { user } } = authResult;
 
   const ownedBySet = new Map<string, number>();
 
   // Solo necesitamos consultar collection si existe un usuario.
-  if (claims) {
+  if (user) {
     const { data: collectionRows, error } = await supabase
       .from("collection")
-      .select("card_id");
+      .select("card_id")
+      .eq("user_id", user.id);
 
     if (error) {
       throw new Error(
