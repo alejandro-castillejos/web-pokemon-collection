@@ -153,13 +153,16 @@ export default async function SearchPage({
     const [{ data: savedRows, error: savedError }, { data: collectionRows, error: collectionError }, { data: wishlistRows, error: wishlistError }, sets, cards] = await Promise.all([
       supabase
         .from(scope)
-        .select("card_id"),
+        .select("card_id")
+        .eq("user_id", user.id),
       supabase
         .from("collection")
-        .select("card_id"),
+        .select("card_id")
+        .eq("user_id", user.id),
       supabase
         .from("wishlist")
-        .select("card_id"),
+        .select("card_id")
+        .eq("user_id", user.id),
       getAllSets("recent"),
       searchCards(query),
     ]);
