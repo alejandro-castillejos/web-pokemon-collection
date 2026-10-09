@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   getAllSets,
-  getCard,
   getSet,
   getSetIdFromCardId,
   searchCards,
@@ -59,22 +58,7 @@ function matches(value: string, query: string) {
     .includes(query.toLocaleLowerCase("es"));
 }
 
-async function resolveCardPreview(cardId: string) {
-  const card = await getCard(cardId);
 
-  if (!card) {
-    return null;
-  }
-
-  return {
-    id: card.id,
-    name: card.name,
-    localId: String(card.localId),
-    image: card.image,
-    setId: card.set.id,
-    setName: card.set.name,
-  };
-}
 
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams.get("q")?.trim() ?? "";
@@ -138,28 +122,19 @@ export async function GET(request: NextRequest) {
             matches(card.name, query) ||
             matches(String(card.localId), query)
         )
-        .slice(0, 3);
+        .slice(0, 3)
+        .map<PreviewResult>((card) => ({
+          type: "card",
+          id: card.id,
+          name: card.name,
+          localId: String(card.localId),
+          image: card.image,
+          setId: set.id,
+          setName: set.name,
+          href: `/sets/${set.id}/${card.id}`,
+        }));
 
-      const resolved = await Promise.all(
-        matchingCards.map((card) =>
-          resolveCardPreview(card.id)
-        )
-      );
-
-      return jsonNoStore(
-        resolved
-          .filter((card): card is NonNullable<typeof card> => card !== null)
-          .map<PreviewResult>((card) => ({
-            type: "card",
-            id: card.id,
-            name: card.name,
-            localId: card.localId,
-            image: card.image,
-            setId: card.setId,
-            setName: card.setName,
-            href: `/sets/${card.setId}/${card.id}`,
-          }))
-      );
+      return jsonNoStore(matchingCards);
     }
 
     const supabase = await createClient();
@@ -207,36 +182,27 @@ export async function GET(request: NextRequest) {
       savedCardIds ? savedCardIds.has(card.id) : true
     );
 
-    const resolvedCards = await Promise.all(
-      cardCandidates.slice(0, 6).map((card) =>
-        resolveCardPreview(card.id)
-      )
-    );
-
-    const cardResults = resolvedCards
-      .filter(
-        (card): card is NonNullable<typeof card> =>
-          card !== null
-      )
+    const cardResults = cardCandidates
       .slice(0, 3)
-      .map<PreviewResult>((card) => ({
-        type: "card",
-        id: card.id,
-        name: card.name,
-        localId: card.localId,
-        image: card.image,
-        setId: card.setId,
-        setName:
-          card.setName ??
-          setMap.get(card.setId)?.name ??
-          card.setId,
-        href:
-          scope === "collection"
-            ? `/collection/${card.setId}/${card.id}`
-            : scope === "wishlist"
-              ? `/wishlist/${card.setId}/${card.id}`
-              : `/sets/${card.setId}/${card.id}`,
-      }));
+      .map<PreviewResult>((card) => {
+        const cardSetId = getSetIdFromCardId(card.id);
+
+        return {
+          type: "card",
+          id: card.id,
+          name: card.name,
+          localId: String(card.localId),
+          image: card.image,
+          setId: cardSetId,
+          setName: setMap.get(cardSetId)?.name ?? cardSetId,
+          href:
+            scope === "collection"
+              ? `/collection/${cardSetId}/${card.id}`
+              : scope === "wishlist"
+                ? `/wishlist/${cardSetId}/${card.id}`
+                : `/sets/${cardSetId}/${card.id}`,
+        };
+      });
 
     if (scope === "collection" || scope === "wishlist") {
       const savedSetIds = new Set(
