@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -341,17 +342,25 @@ function SearchDropdown({
         >
           <div className="flex h-11 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-zinc-100">
             {result.type === "card" && result.image ? (
-              <img
+              <Image
                 src={`${result.image}/low.webp`}
                 alt={result.name}
+                width={36}
+                height={44}
+                sizes="36px"
+                quality={85}
                 className="h-full w-full object-cover"
                 loading="lazy"
               />
             ) : result.logo ? (
-              <img
+              <Image
                 src={`${result.logo}.webp`}
                 alt={result.name}
-                className="max-h-8 max-w-[70px] object-contain"
+                width={70}
+                height={32}
+                sizes="70px"
+                quality={85}
+                className="h-auto max-h-8 w-auto max-w-[70px] object-contain"
                 loading="lazy"
               />
             ) : (
