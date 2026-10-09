@@ -97,8 +97,6 @@ export default function SearchBox({
     const requestId = ++requestIdRef.current;
     const controller = new AbortController();
 
-    setLoading(true);
-
     const timeoutId = window.setTimeout(async () => {
       try {
         const params = new URLSearchParams({
@@ -145,6 +143,7 @@ export default function SearchBox({
 
   function handleQueryChange(value: string) {
     setQuery(value);
+    setLoading(value.trim().length >= 2);
 
     if (value.trim().length < 2) {
       requestIdRef.current += 1;
