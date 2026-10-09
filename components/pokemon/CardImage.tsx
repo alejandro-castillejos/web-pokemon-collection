@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface CardImageProps {
   src?: string;
@@ -19,15 +19,12 @@ export default function CardImage({
   quality = "low",
   className = "",
 }: CardImageProps) {
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    setHasError(false);
-  }, [src]);
+  const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
   const imageUrl = src
     ? `${src}/${quality}.webp`
     : null;
+  const hasError = imageUrl !== null && failedImageUrl === imageUrl;
 
   if (!imageUrl || hasError) {
     return (
@@ -61,7 +58,7 @@ export default function CardImage({
       alt={alt}
       className={className}
       loading={quality === "low" ? "lazy" : "eager"}
-      onError={() => setHasError(true)}
+      onError={() => setFailedImageUrl(imageUrl)}
     />
   );
 }
