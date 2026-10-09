@@ -1,5 +1,6 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
 import TCGdex from "@tcgdex/sdk";
 
 export const tcgdex = new TCGdex("en");
@@ -57,12 +58,30 @@ export async function getAllSets(
 
 const validTcgDexId = /^[A-Za-z0-9_.-]{1,100}$/;
 
+const getCachedSet = unstable_cache(
+  async (setId: string) => tcgdex.set.get(setId),
+  ["tcgdex-set-details-v1"],
+  {
+    revalidate: 3600,
+    tags: ["tcgdex-sets"],
+  }
+);
+
+const getCachedCard = unstable_cache(
+  async (cardId: string) => tcgdex.card.get(cardId),
+  ["tcgdex-card-details-v1"],
+  {
+    revalidate: 3600,
+    tags: ["tcgdex-cards"],
+  }
+);
+
 export async function getSet(setId: string) {
   if (!validTcgDexId.test(setId)) {
     return null;
   }
 
-  return tcgdex.set.get(setId);
+  return getCachedSet(setId);
 }
 
 export async function getCard(cardId: string) {
@@ -70,7 +89,7 @@ export async function getCard(cardId: string) {
     return null;
   }
 
-  return tcgdex.card.get(cardId);
+  return getCachedCard(cardId);
 }
 
 export function getSetIdFromCardId(cardId: string): string {
