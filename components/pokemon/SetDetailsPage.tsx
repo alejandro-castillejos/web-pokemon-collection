@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import GlassPanel from "@/components/ui/GlassPanel";
 import PokemonCard from "@/components/pokemon/PokemonCard";
@@ -75,10 +76,14 @@ export default function SetDetailsPage({
             <div>
               {set.logo ? (
                 <div className="mb-5 flex h-20 items-center">
-                  <img
+                  <Image
                     src={`${set.logo}.webp`}
                     alt={`Logo de ${set.name}`}
-                    className="max-h-20 max-w-xs object-contain"
+                    width={320}
+                    height={80}
+                    sizes="320px"
+                    quality={90}
+                    className="h-auto max-h-20 max-w-xs w-auto object-contain"
                   />
                 </div>
               ) : null}
