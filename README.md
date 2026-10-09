@@ -84,3 +84,4 @@ El workflow de GitHub Actions ejecuta estas comprobaciones en cada push y pull r
 - Las Server Actions vuelven a verificar la sesión y validan las entradas recibidas.
 - Las consultas personales deben filtrar por `user_id`; RLS se mantiene como segunda barrera.
 - Los parámetros de URL para avisos de autenticación son códigos breves, no mensajes arbitrarios.
+- CI bloquea vulnerabilidades altas o críticas en dependencias de producción. La auditoría completa también informa avisos de desarrollo: actualmente hay una alerta sin parche publicado para `braces`, transitiva de las herramientas de ESLint. Debe revisarse de nuevo cuando el proveedor publique una versión corregida, sin forzar una bajada mayor de Next.js para ocultarla.
