@@ -101,6 +101,7 @@ export default async function LoginPage({
             </div>
 
             <LoginForm
+              key={`${params.status ?? ""}:${params.reason ?? ""}:${params.error ?? ""}`}
               initialError={initialError}
               initialNotice={initialNotice}
             />
