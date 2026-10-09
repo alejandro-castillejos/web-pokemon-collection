@@ -3,21 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-type ToggleResult =
-  | {
-      success: true;
-      requiresLogin: false;
-      error: null;
-      owned?: boolean;
-      wishlist?: boolean;
-    }
-  | {
-      success: false;
-      requiresLogin: boolean;
-      error: string;
-      owned?: boolean;
-      wishlist?: boolean;
-    };
+type ToggleResult<T> =
+  | ({ success: true; requiresLogin: false; error: null } & T)
+  | ({ success: false; requiresLogin: boolean; error: string } & T);
 
 function revalidateCardRoutes(setId: string, cardId: string) {
   revalidatePath(`/sets/${setId}/${cardId}`);
@@ -44,7 +32,7 @@ function isValidCardReference(cardId: string, setId: string) {
 export async function toggleCollection(
   cardId: string,
   setId: string
-): Promise<ToggleResult> {
+): Promise<ToggleResult<{ owned: boolean }>> {
   if (!isValidCardReference(cardId, setId)) {
     return {
       success: false,
@@ -135,7 +123,7 @@ export async function toggleCollection(
 export async function toggleWishlist(
   cardId: string,
   setId: string
-): Promise<ToggleResult> {
+): Promise<ToggleResult<{ wishlist: boolean }>> {
   if (!isValidCardReference(cardId, setId)) {
     return {
       success: false,
