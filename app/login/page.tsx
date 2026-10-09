@@ -1,6 +1,6 @@
-import { login, signup } from "./actions";
 import GlassPanel from "@/components/ui/GlassPanel";
 import Link from "next/link";
+import LoginForm from "@/components/account/LoginForm";
 
 interface LoginPageProps {
   searchParams: Promise<{
@@ -80,72 +80,7 @@ export default async function LoginPage({
               </div>
             )}
 
-            {error && (
-            <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800">
-                <p className="font-semibold">No se pudo completar la acción</p>
-
-                <p className="mt-1 leading-6">
-                {error}
-                </p>
-            </div>
-            )}
-
-            <form className="mt-8 space-y-4">
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-2 block text-sm font-semibold text-zinc-700"
-                >
-                  Correo electrónico
-                </label>
-
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                  placeholder="tu@email.com"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-2 block text-sm font-semibold text-zinc-700"
-                >
-                  Contraseña
-                </label>
-
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  minLength={6}
-                  autoComplete="current-password"
-                  className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-                  placeholder="••••••••"
-                />
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <button
-                  formAction={login}
-                  className="yellow-button rounded-full px-5 py-3.5 text-sm font-bold text-[#111111]"
-                >
-                  Iniciar sesión
-                </button>
-
-                <button
-                  formAction={signup}
-                  className="glass-hover glass rounded-full px-5 py-3.5 text-sm font-semibold text-zinc-800"
-                >
-                  Crear cuenta
-                </button>
-              </div>
-            </form>
+            <LoginForm initialError={error} />
 
             <div className="mt-6 border-t border-black/5 pt-6 text-center">
               <Link
