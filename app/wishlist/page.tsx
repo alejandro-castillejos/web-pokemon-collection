@@ -165,6 +165,7 @@ export default async function WishlistPage({
       supabase
         .from("collection")
         .select("card_id")
+        .eq("user_id", user.id)
         .in("card_id", [...wishlistCardIds]),
       Promise.all(
         wishlistSets.map(async (set) => {
