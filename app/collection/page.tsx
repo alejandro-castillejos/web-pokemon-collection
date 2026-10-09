@@ -77,7 +77,8 @@ const currentCardSort: CardSortType =
   const [collectionResult, sets] = await Promise.all([
     supabase
       .from("collection")
-      .select("card_id, created_at"),
+      .select("card_id, created_at")
+      .eq("user_id", user.id),
     getAllSets(
       currentSort === "progress" ? "recent" : currentSort
     ),
