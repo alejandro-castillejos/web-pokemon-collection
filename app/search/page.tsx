@@ -77,7 +77,7 @@ export default async function SearchPage({
   searchParams,
 }: SearchPageProps) {
   const params = await searchParams;
-  const query = params.q?.trim() ?? "";
+  const query = params.q?.trim().slice(0, 80) ?? "";
   const scope: SearchScope = [
     "all",
     "sets",
