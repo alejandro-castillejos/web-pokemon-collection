@@ -6,19 +6,33 @@ import { login, signup } from "@/app/login/actions";
 
 interface LoginFormProps {
   initialError?: string;
+  initialNotice?: {
+    title: string;
+    message: string;
+    tone: "success" | "info";
+  } | null;
 }
 
 type AuthMode = "login" | "signup";
 
-export default function LoginForm({ initialError }: LoginFormProps) {
+export default function LoginForm({
+  initialError,
+  initialNotice = null,
+}: LoginFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState(initialError ?? "");
+  const [notice, setNotice] = useState(initialNotice);
   const [isPending, startTransition] = useTransition();
 
   function handleSubmit(mode: AuthMode) {
+    // Hide any previous success/info message when the user starts a new attempt.
+    setNotice(null);
+    setError("");
+
     const form = formRef.current;
 
     if (!form || !form.reportValidity()) {
@@ -26,7 +40,6 @@ export default function LoginForm({ initialError }: LoginFormProps) {
     }
 
     const formData = new FormData(form);
-    setError("");
 
     startTransition(async () => {
       const result =
@@ -41,7 +54,9 @@ export default function LoginForm({ initialError }: LoginFormProps) {
 
       setEmail("");
       setPassword("");
+      setPasswordVisible(false);
       setError("");
+      setNotice(null);
       router.push(result.redirectTo);
     });
   }
@@ -55,6 +70,21 @@ export default function LoginForm({ initialError }: LoginFormProps) {
         handleSubmit("login");
       }}
     >
+      {notice && (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`rounded-2xl border px-4 py-4 text-sm ${
+            notice.tone === "info"
+              ? "border-yellow-200 bg-yellow-50 text-yellow-900"
+              : "border-emerald-200 bg-emerald-50 text-emerald-800"
+          }`}
+        >
+          <p className="font-semibold">{notice.title}</p>
+          <p className="mt-1 leading-6">{notice.message}</p>
+        </div>
+      )}
+
       {error && (
         <div
           role="alert"
@@ -95,18 +125,32 @@ export default function LoginForm({ initialError }: LoginFormProps) {
           Contraseña
         </label>
 
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          minLength={6}
-          autoComplete="current-password"
-          className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
-          placeholder="••••••••"
-        />
+        <div className="relative">
+          <input
+            id="password"
+            name="password"
+            type={passwordVisible ? "text" : "password"}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            required
+            minLength={6}
+            autoComplete="current-password"
+            className="w-full rounded-2xl border border-black/5 bg-white/60 px-4 py-3.5 pr-12 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
+            placeholder="••••••••"
+          />
+
+          <button
+            type="button"
+            onClick={() => setPasswordVisible((current) => !current)}
+            aria-label={
+              passwordVisible ? "Ocultar contraseña" : "Mostrar contraseña"
+            }
+            title={passwordVisible ? "Ocultar contraseña" : "Mostrar contraseña"}
+            className="absolute inset-y-0 right-2 flex w-10 items-center justify-center rounded-full text-zinc-400 transition hover:bg-black/5 hover:text-zinc-700"
+          >
+            <EyeIcon visible={passwordVisible} />
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -129,5 +173,38 @@ export default function LoginForm({ initialError }: LoginFormProps) {
         </button>
       </div>
     </form>
+  );
+}
+
+function EyeIcon({ visible }: { visible: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      className="h-5 w-5"
+      aria-hidden="true"
+    >
+      {visible ? (
+        <>
+          <path
+            d="M2.8 12s3.3-5 9.2-5 9.2 5 9.2 5-3.3 5-9.2 5-9.2-5-9.2-5Z"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="12" cy="12" r="2.5" />
+        </>
+      ) : (
+        <>
+          <path
+            d="M2.8 12s3.3-5 9.2-5c2.1 0 3.9.7 5.3 1.6M21.2 12s-3.3 5-9.2 5c-2.1 0-3.9-.7-5.3-1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path d="m4 4 16 16" strokeLinecap="round" />
+        </>
+      )}
+    </svg>
   );
 }
