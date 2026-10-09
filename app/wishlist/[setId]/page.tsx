@@ -50,9 +50,7 @@ export default async function WishlistSetPage({
   } = authResult;
 
   if (!user) {
-    redirect(
-      "/login?message=Inicia sesión para ver tu wishlist"
-    );
+    redirect("/login?reason=wishlist");
   }
 
   const cardIds = (set.cards ?? []).map((card) => card.id);
