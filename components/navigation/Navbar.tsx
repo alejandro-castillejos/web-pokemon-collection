@@ -189,6 +189,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-2">
           <SearchBox
+            key={pathname}
             scope={searchScope}
             setId={searchSetId}
             placeholder={searchPlaceholder}
