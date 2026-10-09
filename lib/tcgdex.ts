@@ -1,3 +1,5 @@
+import "server-only";
+
 import TCGdex from "@tcgdex/sdk";
 
 export const tcgdex = new TCGdex("en");
@@ -53,11 +55,21 @@ export async function getAllSets(
   return response.json();
 }
 
+const validTcgDexId = /^[A-Za-z0-9_.-]{1,100}$/;
+
 export async function getSet(setId: string) {
+  if (!validTcgDexId.test(setId)) {
+    return null;
+  }
+
   return tcgdex.set.get(setId);
 }
 
 export async function getCard(cardId: string) {
+  if (!validTcgDexId.test(cardId)) {
+    return null;
+  }
+
   return tcgdex.card.get(cardId);
 }
 
@@ -82,7 +94,7 @@ export async function searchCards(
 ): Promise<TCGdexCardBrief[]> {
   const normalizedQuery = query.trim();
 
-  if (!normalizedQuery) {
+  if (!normalizedQuery || normalizedQuery.length > 80) {
     return [];
   }
 
