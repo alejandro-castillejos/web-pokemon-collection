@@ -177,7 +177,7 @@ const currentCardSort: CardSortType =
 
   // Para la vista de cartas necesitamos obtener la información
   // completa de los sets que forman parte de la colección.
-  let collectionCards: Array<{
+  const collectionCards: Array<{
     id: string;
     localId: string;
     name: string;
