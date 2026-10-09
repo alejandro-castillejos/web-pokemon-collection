@@ -89,11 +89,9 @@ export async function logout() {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    redirect(
-      `/account?error=${encodeURIComponent(error.message)}`
-    );
+    redirect("/account?status=logout-error");
   }
 
   revalidatePath("/", "layout");
-  redirect(`/login?status=logout&message=${encodeURIComponent("Sesión cerrada correctamente")}`);
+  redirect("/login?status=logout");
 }
