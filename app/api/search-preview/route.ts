@@ -47,7 +47,7 @@ function jsonNoStore(data: unknown, init?: ResponseInit) {
   const headers = new Headers(init?.headers);
   headers.set("Cache-Control", "private, no-store, max-age=0");
 
-  return jsonNoStore(data, {
+  return NextResponse.json(data, {
     ...init,
     headers,
   });
