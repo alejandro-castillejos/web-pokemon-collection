@@ -23,6 +23,7 @@ export default async function Home() {
     ? await supabase
       .from("collection")
       .select("card_id, created_at")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
     : { data: [], error: null };
 
