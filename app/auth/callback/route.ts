@@ -8,10 +8,7 @@ export async function GET(request: NextRequest) {
 
   if (!code) {
     return NextResponse.redirect(
-      new URL(
-        "/login?error=No se recibió el código de autenticación",
-        request.url
-      )
+      new URL("/login?error=callback_code_missing", request.url)
     );
   }
 
@@ -22,12 +19,7 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL(
-        `/login?error=${encodeURIComponent(
-          "No se pudo completar la autenticación"
-        )}`,
-        request.url
-      )
+      new URL("/login?error=callback_failed", request.url)
     );
   }
 
