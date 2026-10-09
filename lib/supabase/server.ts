@@ -21,9 +21,8 @@ export async function createClient() {
               }
             );
           } catch {
-            // Los Server Components no siempre pueden
-            // modificar cookies. El Proxy se encargará
-            // de refrescar la sesión cuando implementemos Auth.
+            // Los Server Components no pueden modificar cookies en todos
+            // los contextos; el Proxy actualiza la sesión de la petición.
           }
         },
       },
