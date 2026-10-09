@@ -6,7 +6,6 @@ import PokemonCard from "@/components/pokemon/PokemonCard";
 
 import {
   getAllSets,
-  getCard,
   getSet,
   getSetIdFromCardId,
   searchCards,
@@ -35,56 +34,7 @@ function matchesQuery(value: string, query: string) {
     .includes(query.toLocaleLowerCase("es"));
 }
 
-interface ResolvedSearchCard {
-  id: string;
-  setId: string;
-  localId: string;
-  name: string;
-  image?: string;
-  setName: string;
-}
 
-async function resolveCardResults(
-  cards: Array<{
-    id: string;
-    localId: string;
-    name: string;
-    image?: string;
-  }>
-): Promise<ResolvedSearchCard[]> {
-  return Promise.all(
-    cards.slice(0, 12).map(async (card): Promise<ResolvedSearchCard> => {
-      const fallbackSetId = getSetIdFromCardId(card.id);
-
-      try {
-        const fullCard = await getCard(card.id);
-
-        if (!fullCard) {
-          return {
-            ...card,
-            setId: fallbackSetId,
-            setName: fallbackSetId,
-          };
-        }
-
-        return {
-          id: fullCard.id,
-          localId: String(fullCard.localId),
-          name: fullCard.name,
-          image: fullCard.image,
-          setId: fullCard.set.id,
-          setName: fullCard.set.name,
-        };
-      } catch {
-        return {
-          ...card,
-          setId: fallbackSetId,
-          setName: fallbackSetId,
-        };
-      }
-    })
-  );
-}
 
 export default async function SearchPage({
   searchParams,
@@ -213,23 +163,21 @@ export default async function SearchPage({
       sets.map((set) => [set.id, set.name])
     );
 
-    const matchingCardBriefs = cards
+    const matchingCards = cards
       .filter((card) => savedCardIds.has(card.id))
-      .slice(0, 12);
+      .slice(0, 12)
+      .map((card) => {
+        const setId = getSetIdFromCardId(card.id);
 
-    const matchingCards = (
-      await resolveCardResults(matchingCardBriefs)
-    ).map((card) => ({
-      id: card.id,
-      setId: card.setId,
-      localId: card.localId,
-      name: card.name,
-      image: card.image,
-      setName:
-        card.setName ??
-        setNames.get(card.setId) ??
-        card.setId,
-    }));
+        return {
+          id: card.id,
+          setId,
+          localId: String(card.localId),
+          name: card.name,
+          image: card.image,
+          setName: setNames.get(setId) ?? setId,
+        };
+      });
 
     return (
       <SearchResults
@@ -316,21 +264,20 @@ export default async function SearchPage({
     sets.map((set) => [set.id, set.name])
   );
 
-  const matchingCardBriefs = cards.slice(0, 12);
+  const matchingCards = cards
+    .slice(0, 12)
+    .map((card) => {
+      const setId = getSetIdFromCardId(card.id);
 
-  const matchingCards = (
-    await resolveCardResults(matchingCardBriefs)
-  ).map((card) => ({
-    id: card.id,
-    setId: card.setId,
-    localId: card.localId,
-    name: card.name,
-    image: card.image,
-    setName:
-      card.setName ??
-      setNames.get(card.setId) ??
-      card.setId,
-  }));
+      return {
+        id: card.id,
+        setId,
+        localId: String(card.localId),
+        name: card.name,
+        image: card.image,
+        setName: setNames.get(setId) ?? setId,
+      };
+    });
 
   const searchSets = matchingSets.map((set) => ({
     id: set.id,
