@@ -49,6 +49,14 @@ export default async function CardDetailsPage({
         .maybeSingle(),
     ]);
 
+    if (collectionResult.error) {
+      throw new Error("No se pudo consultar tu colección.");
+    }
+
+    if (wishlistResult.error) {
+      throw new Error("No se pudo consultar tu wishlist.");
+    }
+
     owned = !!collectionResult.data;
     wishlist = !!wishlistResult.data;
   }
@@ -56,7 +64,7 @@ export default async function CardDetailsPage({
   const isCollection = basePath === "/collection";
   const isWishlist = basePath === "/wishlist";
 
-  if (!set || !card) {
+  if (!set || !card || set.id !== setId || card.set.id !== setId) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f4f5f7] px-6">
         <GlassPanel className="max-w-md rounded-[28px] p-8 text-center">
