@@ -151,7 +151,7 @@ export default async function SearchPage({
 
   const supabase = await createClient();
 
-  if ((scope === "collection" || scope === "wishlist") && !params.setId) {
+  if (scope === "collection" || scope === "wishlist") {
     const {
       data: { user },
     } = await supabase.auth.getUser();
