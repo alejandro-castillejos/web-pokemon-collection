@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthActionResult =
@@ -65,18 +64,39 @@ export async function signup(
     };
   }
 
-  const requestHeaders = await headers();
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  const requestOrigin = requestHeaders.get("origin");
-  const siteUrl = configuredSiteUrl || requestOrigin || "http://localhost:3000";
+  const siteUrl =
+    configuredSiteUrl ||
+    (process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "");
 
   let emailRedirectTo: string;
+
   try {
-    emailRedirectTo = new URL("/auth/callback", siteUrl).toString();
+    if (!siteUrl) {
+      throw new Error("Missing canonical site URL");
+    }
+
+    const parsedSiteUrl = new URL(siteUrl);
+    const isLocalHttp =
+      parsedSiteUrl.protocol === "http:" &&
+      ["localhost", "127.0.0.1"].includes(parsedSiteUrl.hostname);
+    const isSecurePublicUrl = parsedSiteUrl.protocol === "https:";
+
+    if (!isLocalHttp && !isSecurePublicUrl) {
+      throw new Error("Invalid canonical site URL");
+    }
+
+    emailRedirectTo = new URL(
+      "/auth/callback",
+      parsedSiteUrl.origin
+    ).toString();
   } catch {
     return {
       success: false,
-      error: "No se pudo preparar el enlace de confirmación. Revisa la configuración del sitio.",
+      error:
+        "No se pudo preparar el enlace de confirmación. Configura NEXT_PUBLIC_SITE_URL con la dirección HTTPS del sitio.",
     };
   }
 
