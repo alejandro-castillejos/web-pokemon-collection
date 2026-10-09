@@ -130,7 +130,7 @@ export default async function AccountPage({
           </GlassPanel>
         </section>
       </div>
-      </main>
+    </main>
     </>
   );
 }
