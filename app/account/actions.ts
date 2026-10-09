@@ -78,5 +78,5 @@ export async function logout() {
   }
 
   revalidatePath("/", "layout");
-  redirect("/login?message=Sesión cerrada correctamente");
+  redirect(`/login?status=logout&message=${encodeURIComponent("Sesión cerrada correctamente")}`);
 }
