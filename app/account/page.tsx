@@ -8,9 +8,7 @@ import { logout } from "./actions";
 
 interface AccountPageProps {
   searchParams: Promise<{
-    error?: string;
-    passwordError?: string;
-    passwordSuccess?: string;
+    status?: string;
   }>;
 }
 
@@ -53,13 +51,13 @@ export default async function AccountPage({
             strong
             className="rounded-[32px] p-6 sm:p-8"
           >
-            {params.error && (
+            {params.status === "logout-error" && (
               <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-4 text-sm text-red-800">
                 <p className="font-semibold">
                   No se pudo cerrar la sesión
                 </p>
                 <p className="mt-1 leading-6">
-                  {params.error}
+                  Inténtalo de nuevo. Tu sesión podría seguir activa.
                 </p>
               </div>
             )}
@@ -76,7 +74,7 @@ export default async function AccountPage({
 
             <div className="my-6 border-t border-black/5" />
 
-            <details open={Boolean(params.passwordSuccess || params.passwordError)} className="group">
+            <details className="group">
               <summary className="flex cursor-pointer list-none items-center justify-between py-1 transition hover:text-zinc-700">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
