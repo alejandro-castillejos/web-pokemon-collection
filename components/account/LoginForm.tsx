@@ -29,24 +29,16 @@ export default function LoginForm({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (initialNotice) {
-      setNotice(initialNotice);
-      setError("");
+    if (!initialNotice && !initialError) {
+      return;
     }
 
-    if (initialError) {
-      setError(initialError);
-      setNotice(null);
-    }
-
-    if (initialNotice || initialError) {
-      // Status/reason/error are one-time UI signals, not persistent page state.
-      window.history.replaceState(
-        window.history.state,
-        "",
-        window.location.pathname
-      );
-    }
+    // Status/reason/error are one-time UI signals, not persistent page state.
+    window.history.replaceState(
+      window.history.state,
+      "",
+      window.location.pathname
+    );
   }, [initialNotice, initialError]);
 
   function handleSubmit(mode: AuthMode) {
