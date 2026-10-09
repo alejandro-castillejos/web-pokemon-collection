@@ -1,48 +1,75 @@
-import GlassPanel from "@/components/ui/GlassPanel";
-import Link from "next/link";
-import LoginForm from "@/components/account/LoginForm";
-
 interface LoginPageProps {
   searchParams: Promise<{
-    message?: string;
     error?: string;
     status?: string;
     reason?: string;
   }>;
 }
 
+type Notice = {
+  title: string;
+  message: string;
+  tone: "success" | "info";
+};
+
 export default async function LoginPage({
   searchParams,
 }: LoginPageProps) {
   const params = await searchParams;
 
-  const error = params.error;
+  const errorMessages: Record<string, string> = {
+    callback_code_missing:
+      "El enlace de confirmación no contiene un código válido. Vuelve a abrir el enlace de tu correo.",
+    callback_failed:
+      "No se pudo completar la confirmación de tu cuenta. Vuelve a intentarlo desde el enlace recibido.",
+  };
 
-  const initialNotice =
-    params.reason === "collection"
-      ? {
-          title: "Inicia sesión para continuar",
-          message: "Inicia sesión para ver tu colección",
-          tone: "info" as const,
-        }
-      : params.reason === "wishlist"
-        ? {
-            title: "Inicia sesión para continuar",
-            message: "Inicia sesión para ver tu wishlist",
-            tone: "info" as const,
-          }
-        : params.message
-          ? {
-              title:
-                params.status === "logout"
-                  ? "Sesión cerrada"
-                  : params.status === "signup"
-                    ? "Cuenta creada"
-                    : "Aviso",
-              message: params.message,
-              tone: "success" as const,
-            }
-          : null;
+  const initialError = params.error
+    ? errorMessages[params.error] ??
+      "No se pudo completar la autenticación. Vuelve a intentarlo."
+    : undefined;
+
+  let initialNotice: Notice | null = null;
+
+  if (!initialError) {
+    if (params.reason === "collection") {
+      initialNotice = {
+        title: "Inicia sesión para continuar",
+        message: "Inicia sesión para ver tu colección.",
+        tone: "info",
+      };
+    } else if (params.reason === "wishlist") {
+      initialNotice = {
+        title: "Inicia sesión para continuar",
+        message: "Inicia sesión para ver tu wishlist.",
+        tone: "info",
+      };
+    } else if (params.reason === "add-collection") {
+      initialNotice = {
+        title: "Inicia sesión para continuar",
+        message: "Inicia sesión para agregar esta carta a tu colección.",
+        tone: "info",
+      };
+    } else if (params.reason === "add-wishlist") {
+      initialNotice = {
+        title: "Inicia sesión para continuar",
+        message: "Inicia sesión para agregar esta carta a tu wishlist.",
+        tone: "info",
+      };
+    } else if (params.status === "logout") {
+      initialNotice = {
+        title: "Sesión cerrada",
+        message: "Sesión cerrada correctamente.",
+        tone: "success",
+      };
+    } else if (params.status === "signup") {
+      initialNotice = {
+        title: "Cuenta creada",
+        message: "Revisa tu correo para confirmar tu cuenta.",
+        tone: "success",
+      };
+    }
+  }
 
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
@@ -71,7 +98,7 @@ export default async function LoginPage({
               </p>
             </div>
 
-            <LoginForm initialError={error} initialNotice={initialNotice} />
+            <LoginForm initialError={initialError} initialNotice={initialNotice} />
 
             <div className="mt-6 border-t border-black/5 pt-6 text-center">
               <Link
