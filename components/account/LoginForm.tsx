@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { login, signup } from "@/app/login/actions";
 
@@ -27,6 +27,27 @@ export default function LoginForm({
   const [error, setError] = useState(initialError ?? "");
   const [notice, setNotice] = useState(initialNotice);
   const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (initialNotice) {
+      setNotice(initialNotice);
+      setError("");
+    }
+
+    if (initialError) {
+      setError(initialError);
+      setNotice(null);
+    }
+
+    if (initialNotice || initialError) {
+      // Status/reason/error are one-time UI signals, not persistent page state.
+      window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.pathname
+      );
+    }
+  }, [initialNotice, initialError]);
 
   function handleSubmit(mode: AuthMode) {
     // Hide any previous success/info message when the user starts a new attempt.
