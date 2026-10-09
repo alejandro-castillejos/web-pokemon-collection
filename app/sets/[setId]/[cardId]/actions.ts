@@ -8,9 +8,14 @@ type ToggleResult<T> =
   | ({ success: false; requiresLogin: boolean; error: string } & T);
 
 function revalidateCardRoutes(setId: string, cardId: string) {
+  // Refresh all views that derive counts or recent additions from these records.
+  revalidatePath("/");
+  revalidatePath("/sets");
+  revalidatePath(`/sets/${setId}`);
   revalidatePath(`/sets/${setId}/${cardId}`);
-  revalidatePath(`/collection/${setId}/${cardId}`);
   revalidatePath("/collection");
+  revalidatePath(`/collection/${setId}`);
+  revalidatePath(`/collection/${setId}/${cardId}`);
   revalidatePath("/wishlist");
   revalidatePath(`/wishlist/${setId}`);
   revalidatePath(`/wishlist/${setId}/${cardId}`);
