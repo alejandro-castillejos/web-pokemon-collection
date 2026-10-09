@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthActionResult =
@@ -64,11 +65,26 @@ export async function signup(
     };
   }
 
+  const requestHeaders = await headers();
+  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const requestOrigin = requestHeaders.get("origin");
+  const siteUrl = configuredSiteUrl || requestOrigin || "http://localhost:3000";
+
+  let emailRedirectTo: string;
+  try {
+    emailRedirectTo = new URL("/auth/callback", siteUrl).toString();
+  } catch {
+    return {
+      success: false,
+      error: "No se pudo preparar el enlace de confirmación. Revisa la configuración del sitio.",
+    };
+  }
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: "http://localhost:3000/auth/callback",
+      emailRedirectTo,
     },
   });
 
@@ -83,10 +99,6 @@ export async function signup(
 
   return {
     success: true,
-    redirectTo:
-      "/login?status=signup&message=" +
-      encodeURIComponent(
-        "Cuenta creada. Revisa tu correo para confirmar tu cuenta."
-      ),
+    redirectTo: "/login?status=signup",
   };
 }
