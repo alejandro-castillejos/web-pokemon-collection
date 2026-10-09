@@ -39,6 +39,9 @@ export default function LoginForm({ initialError }: LoginFormProps) {
         return;
       }
 
+      setEmail("");
+      setPassword("");
+      setError("");
       router.push(result.redirectTo);
     });
   }
