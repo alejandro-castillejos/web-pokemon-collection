@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useState } from "react";
 
 interface LoginRequiredModalProps {
   open: boolean;
@@ -16,10 +17,19 @@ export default function LoginRequiredModal({
   onClose,
   errorMessage,
 }: LoginRequiredModalProps) {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
-    if (!open) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open || !mounted) {
       return;
     }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -30,11 +40,12 @@ export default function LoginRequiredModal({
     document.addEventListener("keydown", handleEscape);
 
     return () => {
+      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [open, onClose]);
+  }, [open, mounted, onClose]);
 
-  if (!open) {
+  if (!open || !mounted) {
     return null;
   }
 
@@ -46,9 +57,9 @@ export default function LoginRequiredModal({
       ? "Inicia sesión para agregar esta carta a tu colección."
       : "Inicia sesión para agregar esta carta a tu wishlist.");
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 px-5 backdrop-blur-[3px]"
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/25 px-5 py-6 backdrop-blur-[3px]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="action-modal-title"
@@ -118,6 +129,7 @@ export default function LoginRequiredModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
