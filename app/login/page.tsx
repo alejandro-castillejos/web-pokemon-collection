@@ -32,7 +32,9 @@ export default async function LoginPage({
       ? "Inicia sesión para continuar"
       : params.status === "logout"
         ? "Sesión cerrada"
-        : "Cuenta creada";
+        : params.status === "signup"
+          ? "Cuenta creada"
+          : "Aviso";
 
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
