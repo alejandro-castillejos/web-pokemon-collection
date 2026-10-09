@@ -362,7 +362,7 @@ export default async function Home() {
                 <p className="mt-1 text-xs leading-5 text-zinc-500">
                   {user
                     ? "Tus últimas cartas aparecerán aquí."
-                    : "Guarda tus cartas y consulta tu colección en cualquier momento."}
+                    : "Tu colección TCG como ninguna"}
                 </p>
               </div>
             )}
