@@ -1,3 +1,7 @@
+import GlassPanel from "@/components/ui/GlassPanel";
+import Link from "next/link";
+import LoginForm from "@/components/account/LoginForm";
+
 interface LoginPageProps {
   searchParams: Promise<{
     error?: string;
@@ -74,11 +78,9 @@ export default async function LoginPage({
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
       <div className="soft-glow left-[-140px] top-[180px] h-72 w-72 bg-blue-300/20" />
-
       <div className="soft-glow right-[-120px] top-[300px] h-80 w-80 bg-yellow-200/30" />
 
       <div className="relative mx-auto min-h-screen max-w-[1400px] px-5 py-4 sm:px-8 lg:px-10">
-
         <section className="flex min-h-[calc(100vh-120px)] items-center justify-center py-12">
           <GlassPanel
             strong
@@ -98,7 +100,10 @@ export default async function LoginPage({
               </p>
             </div>
 
-            <LoginForm initialError={initialError} initialNotice={initialNotice} />
+            <LoginForm
+              initialError={initialError}
+              initialNotice={initialNotice}
+            />
 
             <div className="mt-6 border-t border-black/5 pt-6 text-center">
               <Link
