@@ -1,12 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 type SearchScope =
   | "all"
@@ -42,45 +38,50 @@ export default function SearchBox({
   const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  const desktopContainerRef = useRef<HTMLDivElement>(null);
+  const mobileContainerRef = useRef<HTMLDivElement>(null);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
+  const mobileInputRef = useRef<HTMLInputElement>(null);
   const requestIdRef = useRef(0);
   const router = useRouter();
 
   useEffect(() => {
-    if (!mobileOpen) {
-      return;
+    if (mobileOpen) {
+      mobileInputRef.current?.focus();
     }
-
-    inputRef.current?.focus();
   }, [mobileOpen]);
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+
+      const insideDesktop =
+        desktopContainerRef.current?.contains(target) ?? false;
+      const insideMobile =
+        mobileContainerRef.current?.contains(target) ?? false;
+
+      if (!insideDesktop && !insideMobile) {
         setOpen(false);
+        setMobileOpen(false);
       }
     }
 
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setOpen(false);
-        setMobileOpen(false);
-        inputRef.current?.blur();
-      }
+      if (event.key !== "Escape") return;
+
+      setOpen(false);
+      setMobileOpen(false);
+      desktopInputRef.current?.blur();
+      mobileInputRef.current?.blur();
     }
 
     document.addEventListener("mousedown", handleOutsideClick);
     document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener(
-        "mousedown",
-        handleOutsideClick
-      );
+      document.removeEventListener("mousedown", handleOutsideClick);
       document.removeEventListener("keydown", handleEscape);
     };
   }, []);
@@ -89,6 +90,7 @@ export default function SearchBox({
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length < 2) {
+      requestIdRef.current += 1;
       setResults([]);
       setOpen(false);
       setLoading(false);
@@ -113,9 +115,7 @@ export default function SearchBox({
 
         const response = await fetch(
           `/api/search-preview?${params.toString()}`,
-          {
-            signal: controller.signal,
-          }
+          { signal: controller.signal }
         );
 
         if (!response.ok) {
@@ -124,9 +124,7 @@ export default function SearchBox({
 
         const data = (await response.json()) as SearchResult[];
 
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
+        if (requestId !== requestIdRef.current) return;
 
         setResults(data.slice(0, 3));
         setOpen(true);
@@ -158,12 +156,11 @@ export default function SearchBox({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!query.trim()) {
-      return;
-    }
+    const normalizedQuery = query.trim();
+    if (!normalizedQuery) return;
 
     const params = new URLSearchParams({
-      q: query.trim(),
+      q: normalizedQuery,
       scope,
     });
 
@@ -176,51 +173,52 @@ export default function SearchBox({
     router.push(`/search?${params.toString()}`);
   }
 
-  const input = (
-    <input
-      ref={inputRef}
-      type="search"
-      value={query}
-      onChange={(event) => setQuery(event.target.value)}
-      onFocus={() => {
-        if (results.length > 0) {
-          setOpen(true);
-        }
-      }}
-      placeholder={placeholder}
-      aria-label={placeholder}
-      autoComplete="off"
-      className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
-    />
+  const searchIcon = (
+    <span className="mr-2 text-sm text-zinc-400" aria-hidden="true">
+      ⌕
+    </span>
   );
+
+  const loadingIcon = loading ? (
+    <span
+      aria-label="Buscando"
+      className="ml-2 h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600"
+    />
+  ) : null;
 
   return (
     <>
-      {/* Escritorio */}
       <div
-        ref={containerRef}
+        ref={desktopContainerRef}
         className="relative hidden lg:block"
       >
         <form
           onSubmit={handleSubmit}
+          role="search"
           className="flex w-[230px] items-center rounded-full border border-black/5 bg-white/65 px-4 py-2.5 transition focus-within:bg-white/80"
         >
-          <span className="mr-2 text-sm text-zinc-400">⌕</span>
-          {input}
-          {loading && (
-            <span className="ml-2 h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />
-          )}
+          {searchIcon}
+          <input
+            ref={desktopInputRef}
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onFocus={() => {
+              if (results.length > 0) setOpen(true);
+            }}
+            placeholder={placeholder}
+            aria-label={placeholder}
+            autoComplete="off"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
+          />
+          {loadingIcon}
         </form>
 
         {open && (
-          <SearchDropdown
-            results={results}
-            onClose={closeSearch}
-          />
+          <SearchDropdown results={results} onClose={closeSearch} />
         )}
       </div>
 
-      {/* Móvil / tablet */}
       <div className="lg:hidden">
         <button
           type="button"
@@ -235,18 +233,16 @@ export default function SearchBox({
             stroke="currentColor"
             strokeWidth="1.8"
             className="h-5 w-5"
+            aria-hidden="true"
           >
             <circle cx="11" cy="11" r="6.5" />
-            <path
-              d="m16 16 4.5 4.5"
-              strokeLinecap="round"
-            />
+            <path d="m16 16 4.5 4.5" strokeLinecap="round" />
           </svg>
         </button>
 
         {mobileOpen && (
           <div
-            ref={containerRef}
+            ref={mobileContainerRef}
             className="absolute inset-2 z-50 flex items-center rounded-[22px] border border-black/5 bg-white/92 px-3 shadow-lg shadow-black/10 backdrop-blur-xl"
           >
             <button
@@ -261,6 +257,7 @@ export default function SearchBox({
                 stroke="currentColor"
                 strokeWidth="1.8"
                 className="h-5 w-5"
+                aria-hidden="true"
               >
                 <path
                   d="m6 6 12 12M18 6 6 18"
@@ -271,15 +268,24 @@ export default function SearchBox({
 
             <form
               onSubmit={handleSubmit}
+              role="search"
               className="flex min-w-0 flex-1 items-center"
             >
-              <span className="mr-2 text-sm text-zinc-400">
-                ⌕
-              </span>
-              {input}
-              {loading && (
-                <span className="ml-2 h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-600" />
-              )}
+              {searchIcon}
+              <input
+                ref={mobileInputRef}
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onFocus={() => {
+                  if (results.length > 0) setOpen(true);
+                }}
+                placeholder={placeholder}
+                aria-label={placeholder}
+                autoComplete="off"
+                className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-zinc-400"
+              />
+              {loadingIcon}
             </form>
 
             {open && (
@@ -330,12 +336,14 @@ function SearchDropdown({
                 src={`${result.image}/low.webp`}
                 alt={result.name}
                 className="h-full w-full object-cover"
+                loading="lazy"
               />
             ) : result.logo ? (
               <img
                 src={`${result.logo}.webp`}
                 alt={result.name}
                 className="max-h-8 max-w-[70px] object-contain"
+                loading="lazy"
               />
             ) : (
               <span className="text-[10px] font-semibold text-zinc-400">
