@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import LoginRequiredModal from "@/components/ui/LoginRequiredModal";
 import { toggleWishlist } from "@/app/sets/[setId]/[cardId]/actions";
 
 interface WishlistButtonProps {
@@ -17,7 +18,8 @@ export default function WishlistButton({
 }: WishlistButtonProps) {
   const [wishlist, setWishlist] = useState(initialWishlist);
   const [isPending, startTransition] = useTransition();
-
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const router = useRouter();
 
   function handleClick() {
@@ -25,33 +27,49 @@ export default function WishlistButton({
       const result = await toggleWishlist(cardId, setId);
 
       if (!result.success) {
-        alert(result.error);
+        setActionError(result.requiresLogin ? null : result.error);
+        setLoginModalOpen(true);
         return;
       }
 
       setWishlist(result.wishlist);
+      setActionError(null);
+      setLoginModalOpen(false);
       router.refresh();
     });
   }
 
+  function closeModal() {
+    setLoginModalOpen(false);
+    setActionError(null);
+  }
+
   return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={isPending}
-      className={`rounded-full px-6 py-3.5 text-sm font-semibold transition ${
-        wishlist
-          ? "border border-pink-500 bg-pink-500 text-white shadow-sm"
-          : "glass-hover glass text-zinc-800"
-      } ${
-        isPending ? "cursor-wait opacity-60" : ""
-      }`}
-    >
-      {isPending
-        ? "Guardando..."
-        : wishlist
-          ? "♥ En mi wishlist"
-          : "♡ Agregar a wishlist"}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isPending}
+        aria-label={wishlist ? "Quitar de mi wishlist" : "Agregar a mi wishlist"}
+        className={`rounded-full px-6 py-3.5 text-sm font-semibold transition ${
+          wishlist
+            ? "border border-pink-500 bg-pink-500 text-white shadow-sm"
+            : "glass-hover glass text-zinc-800"
+        } ${isPending ? "cursor-wait opacity-60" : ""}`}
+      >
+        {isPending
+          ? "Guardando..."
+          : wishlist
+            ? "♥ En mi wishlist"
+            : "♡ Agregar a wishlist"}
+      </button>
+
+      <LoginRequiredModal
+        open={loginModalOpen}
+        action="wishlist"
+        errorMessage={actionError}
+        onClose={closeModal}
+      />
+    </>
   );
 }
