@@ -149,7 +149,7 @@ export default async function WishlistPage({
     );
   }
 
-  let wishlistCards: Array<{
+  const wishlistCards: Array<{
     id: string;
     localId: string;
     name: string;
