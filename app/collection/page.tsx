@@ -161,6 +161,7 @@ const currentCardSort: CardSortType =
       await supabase
         .from("wishlist")
         .select("card_id")
+        .eq("user_id", user.id)
         .in("card_id", [...ownedCardIds]);
 
     if (wishlistError) {
