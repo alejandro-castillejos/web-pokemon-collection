@@ -76,7 +76,7 @@ export default async function AccountPage({
 
             <div className="my-6 border-t border-black/5" />
 
-            <details className="group">
+            <details open={Boolean(params.passwordSuccess || params.passwordError)} className="group">
               <summary className="flex cursor-pointer list-none items-center justify-between py-1 transition hover:text-zinc-700">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
