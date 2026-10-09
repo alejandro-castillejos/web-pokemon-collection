@@ -76,7 +76,8 @@ export default async function WishlistPage({
   const [wishlistResult, sets] = await Promise.all([
     supabase
       .from("wishlist")
-      .select("card_id, created_at"),
+      .select("card_id, created_at")
+      .eq("user_id", user.id),
     getAllSets(
       currentSort === "progress" ? "recent" : currentSort
     ),
