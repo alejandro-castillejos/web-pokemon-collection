@@ -1,9 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export interface PasswordChangeResult {
+interface PasswordChangeResult {
   success: boolean;
   message: string;
   sessionExpired?: boolean;
