@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 interface CardImageProps {
@@ -53,9 +54,13 @@ export default function CardImage({
   }
 
   return (
-    <img
+    <Image
       src={imageUrl}
       alt={alt}
+      width={quality === "low" ? 250 : 734}
+      height={quality === "low" ? 350 : 1024}
+      sizes="(max-width: 640px) 46vw, (max-width: 1024px) 28vw, 220px"
+      quality={90}
       className={className}
       loading={quality === "low" ? "lazy" : "eager"}
       onError={() => setFailedImageUrl(imageUrl)}
