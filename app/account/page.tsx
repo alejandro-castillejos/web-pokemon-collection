@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import GlassPanel from "@/components/ui/GlassPanel";
 import PasswordChangeForm from "@/components/account/PasswordChangeForm";
+import ClearQueryStatus from "@/components/account/ClearQueryStatus";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "./actions";
 
@@ -27,7 +28,9 @@ export default async function AccountPage({
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden text-[#111111]">
+    <>
+      <ClearQueryStatus status={params.status} />
+      <main className="relative min-h-screen overflow-hidden text-[#111111]">
       <div className="soft-glow left-[-140px] top-[180px] h-72 w-72 bg-blue-300/20" />
       <div className="soft-glow right-[-120px] top-[300px] h-80 w-80 bg-yellow-200/30" />
 
@@ -127,6 +130,7 @@ export default async function AccountPage({
           </GlassPanel>
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }
