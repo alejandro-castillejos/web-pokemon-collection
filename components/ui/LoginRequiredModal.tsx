@@ -112,7 +112,7 @@ export default function LoginRequiredModal({
         <div className="mt-6 grid gap-3 sm:grid-cols-2">
           {requiresLogin ? (
             <Link
-              href="/login"
+              href={action === "collection" ? "/login?reason=add-collection" : "/login?reason=add-wishlist"}
               onClick={onClose}
               className="yellow-button flex items-center justify-center rounded-full px-5 py-3.5 text-sm font-bold text-[#111111]"
             >
