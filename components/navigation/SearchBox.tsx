@@ -90,10 +90,6 @@ export default function SearchBox({
     const normalizedQuery = query.trim();
 
     if (normalizedQuery.length < 2) {
-      requestIdRef.current += 1;
-      setResults([]);
-      setOpen(false);
-      setLoading(false);
       return;
     }
 
@@ -146,11 +142,24 @@ export default function SearchBox({
     };
   }, [query, scope, setId]);
 
+  function handleQueryChange(value: string) {
+    setQuery(value);
+
+    if (value.trim().length < 2) {
+      requestIdRef.current += 1;
+      setResults([]);
+      setOpen(false);
+      setLoading(false);
+    }
+  }
+
   function closeSearch() {
     setQuery("");
     setResults([]);
     setOpen(false);
+    setLoading(false);
     setMobileOpen(false);
+    requestIdRef.current += 1;
   }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -202,7 +211,7 @@ export default function SearchBox({
             ref={desktopInputRef}
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => handleQueryChange(event.target.value)}
             onFocus={() => {
               if (results.length > 0) setOpen(true);
             }}
@@ -276,7 +285,7 @@ export default function SearchBox({
                 ref={mobileInputRef}
                 type="search"
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => handleQueryChange(event.target.value)}
                 onFocus={() => {
                   if (results.length > 0) setOpen(true);
                 }}
