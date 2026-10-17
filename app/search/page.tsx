@@ -34,8 +34,44 @@ function matchesQuery(value: string, query: string) {
     .includes(query.toLocaleLowerCase("es"));
 }
 
+async function getUserCardStateIds(
+  supabase: Awaited<ReturnType<typeof createClient>>
+) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
+  if (!user) {
+    return {
+      collectionCardIds: new Set<string>(),
+      wishlistCardIds: new Set<string>(),
+    };
+  }
 
+  const [collectionResult, wishlistResult] = await Promise.all([
+    supabase
+      .from("collection")
+      .select("card_id")
+      .eq("user_id", user.id),
+    supabase
+      .from("wishlist")
+      .select("card_id")
+      .eq("user_id", user.id),
+  ]);
+
+  if (collectionResult.error || wishlistResult.error) {
+    throw new Error("Error obteniendo el estado de colección y wishlist.");
+  }
+
+  return {
+    collectionCardIds: new Set(
+      collectionResult.data?.map((row) => row.card_id) ?? []
+    ),
+    wishlistCardIds: new Set(
+      wishlistResult.data?.map((row) => row.card_id) ?? []
+    ),
+  };
+}
 export default async function SearchPage({
   searchParams,
 }: SearchPageProps) {
@@ -221,6 +257,9 @@ export default async function SearchPage({
       return <SearchResults query={query} scope={scope} sets={[]} cards={[]} />;
     }
 
+    const { collectionCardIds, wishlistCardIds } =
+      await getUserCardStateIds(supabase);
+
     const cards = (set.cards ?? [])
       .filter(
         (card) =>
@@ -243,6 +282,8 @@ export default async function SearchPage({
         scope={scope}
         sets={[]}
         cards={cards}
+        collectionCardIds={collectionCardIds}
+        wishlistCardIds={wishlistCardIds}
       />
     );
   }
@@ -251,6 +292,14 @@ export default async function SearchPage({
     getAllSets("recent"),
     searchCards(query),
   ]);
+
+  const { collectionCardIds, wishlistCardIds } =
+    scope === "all"
+      ? await getUserCardStateIds(supabase)
+      : {
+          collectionCardIds: new Set<string>(),
+          wishlistCardIds: new Set<string>(),
+        };
 
   const matchingSets = sets
     .filter(
@@ -293,6 +342,8 @@ export default async function SearchPage({
       scope={scope}
       sets={scope === "sets" || scope === "all" ? searchSets : []}
       cards={scope === "sets" ? [] : matchingCards}
+      collectionCardIds={collectionCardIds}
+      wishlistCardIds={wishlistCardIds}
     />
   );
 }
