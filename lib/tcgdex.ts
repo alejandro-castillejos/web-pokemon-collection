@@ -37,7 +37,7 @@ export async function getAllSets(
     effectiveSort === "oldest" || effectiveSort === "name"
       ? "ASC"
       : "DESC";
-      
+
   const response = await fetch(
     `https://api.tcgdex.net/v2/en/sets?sort:field=${sortField}&sort:order=${sortOrder}`,
     {
@@ -58,9 +58,35 @@ export async function getAllSets(
 
 const validTcgDexId = /^[A-Za-z0-9_.-]{1,100}$/;
 
+// Convertimos los objetos del SDK en objetos planos antes de guardarlos
+// en la caché de Next.js. Así evitamos referencias circulares internas.
 const getCachedSet = unstable_cache(
-  async (setId: string) => tcgdex.set.get(setId),
-  ["tcgdex-set-details-v1"],
+  async (setId: string) => {
+    const set = await tcgdex.set.get(setId);
+
+    if (!set) {
+      return null;
+    }
+
+    return {
+      id: set.id,
+      name: set.name,
+      logo: set.logo,
+      symbol: set.symbol,
+      releaseDate: set.releaseDate,
+      cardCount: {
+        total: set.cardCount.total,
+        official: set.cardCount.official,
+      },
+      cards: (set.cards ?? []).map((card) => ({
+        id: card.id,
+        localId: card.localId,
+        name: card.name,
+        image: card.image,
+      })),
+    };
+  },
+  ["tcgdex-set-details-v2"],
   {
     revalidate: 3600,
     tags: ["tcgdex-sets"],
@@ -68,8 +94,26 @@ const getCachedSet = unstable_cache(
 );
 
 const getCachedCard = unstable_cache(
-  async (cardId: string) => tcgdex.card.get(cardId),
-  ["tcgdex-card-details-v1"],
+  async (cardId: string) => {
+    const card = await tcgdex.card.get(cardId);
+
+    if (!card) {
+      return null;
+    }
+
+    return {
+      id: card.id,
+      localId: card.localId,
+      name: card.name,
+      image: card.image,
+      category: card.category,
+      rarity: card.rarity,
+      set: {
+        id: card.set.id,
+      },
+    };
+  },
+  ["tcgdex-card-details-v2"],
   {
     revalidate: 3600,
     tags: ["tcgdex-cards"],
@@ -101,6 +145,7 @@ export function getSetIdFromCardId(cardId: string): string {
 
   return cardId.slice(0, separatorIndex);
 }
+
 export interface TCGdexCardBrief {
   id: string;
   localId: string;
