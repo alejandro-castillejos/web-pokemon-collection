@@ -22,9 +22,7 @@ export default function CardImage({
 }: CardImageProps) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
 
-  const imageUrl = src
-    ? `${src}/${quality}.webp`
-    : null;
+  const imageUrl = src ? `${src}/${quality}.webp` : null;
   const hasError = imageUrl !== null && failedImageUrl === imageUrl;
 
   if (!imageUrl || hasError) {
@@ -37,13 +35,9 @@ export default function CardImage({
             Pokémon TCG
           </p>
 
-          <p className="mt-2 text-lg font-bold text-zinc-700">
-            {name}
-          </p>
+          <p className="mt-2 text-lg font-bold text-zinc-700">{name}</p>
 
-          <p className="mt-1 text-xs text-zinc-400">
-            #{number}
-          </p>
+          <p className="mt-1 text-xs text-zinc-400">#{number}</p>
 
           <p className="mt-3 text-[10px] text-zinc-400">
             Imagen no disponible
@@ -53,16 +47,22 @@ export default function CardImage({
     );
   }
 
+  const isDetailImage = quality === "high";
+
   return (
     <Image
       src={imageUrl}
       alt={alt}
-      width={quality === "low" ? 250 : 734}
-      height={quality === "low" ? 350 : 1024}
-      sizes="(max-width: 640px) 46vw, (max-width: 1024px) 28vw, 220px"
+      width={isDetailImage ? 734 : 250}
+      height={isDetailImage ? 1024 : 350}
+      sizes={
+        isDetailImage
+          ? "(max-width: 1024px) 90vw, 45vw"
+          : "(max-width: 640px) 46vw, (max-width: 1024px) 28vw, 220px"
+      }
       quality={90}
       className={className}
-      loading={quality === "low" ? "lazy" : "eager"}
+      loading={isDetailImage ? "eager" : "lazy"}
       onError={() => setFailedImageUrl(imageUrl)}
     />
   );
