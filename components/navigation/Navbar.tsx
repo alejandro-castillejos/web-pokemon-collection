@@ -52,10 +52,10 @@ export default function Navbar() {
     "text-zinc-600 hover:bg-white/50 hover:text-zinc-900";
 
   return (
-    <header className="glass-strong sticky top-4 z-30 relative mx-4 mb-6 rounded-[28px] px-4 py-3 sm:mx-6 sm:px-5 lg:mx-8">
-      <div className="flex items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#111111] text-[10px] font-bold tracking-tight text-white">
+    <header className="glass-strong sticky top-4 z-30 relative mx-3 mb-6 rounded-[28px] px-3 py-2.5 sm:mx-6 sm:px-5 sm:py-3 lg:mx-8">
+      <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <Link href="/" className="flex shrink-0 items-center gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#111111] text-[10px] font-bold tracking-tight text-white sm:h-10 sm:w-10">
             TCG
           </div>
 
@@ -69,12 +69,12 @@ export default function Navbar() {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-1 md:hidden">
+        <nav className="flex shrink-0 items-center gap-0.5 md:hidden">
           <Link
             href="/"
             aria-label="Inicio"
             title="Inicio"
-            className={`flex h-9 w-9 items-center justify-center rounded-full transition ${isHome ? activeClass : inactiveClass}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition sm:h-9 sm:w-9 ${isHome ? activeClass : inactiveClass}`}
           >
             <svg
               viewBox="0 0 24 24"
@@ -95,7 +95,7 @@ export default function Navbar() {
             href="/sets"
             aria-label="Sets"
             title="Sets"
-            className={`flex h-9 w-9 items-center justify-center rounded-full transition ${isSets ? activeClass : inactiveClass}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition sm:h-9 sm:w-9 ${isSets ? activeClass : inactiveClass}`}
           >
             <svg
               viewBox="0 0 24 24"
@@ -117,7 +117,7 @@ export default function Navbar() {
             href="/collection"
             aria-label="Colección"
             title="Colección"
-            className={`flex h-9 w-9 items-center justify-center rounded-full transition ${isCollection ? activeClass : inactiveClass}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition sm:h-9 sm:w-9 ${isCollection ? activeClass : inactiveClass}`}
           >
             <svg
               viewBox="0 0 24 24"
@@ -139,7 +139,7 @@ export default function Navbar() {
             href="/wishlist"
             aria-label="Wishlist"
             title="Wishlist"
-            className={`flex h-9 w-9 items-center justify-center rounded-full transition ${isWishlist ? activeClass : inactiveClass}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition sm:h-9 sm:w-9 ${isWishlist ? activeClass : inactiveClass}`}
           >
             <svg
               viewBox="0 0 24 24"
@@ -187,7 +187,7 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <SearchBox
             key={pathname}
             scope={searchScope}
@@ -199,7 +199,7 @@ export default function Navbar() {
             href="/account"
             aria-label="Cuenta"
             title="Cuenta"
-            className={`glass-hover flex h-10 w-10 items-center justify-center rounded-full text-zinc-700 transition ${isAccount ? activeClass : ""}`}
+            className={`glass-hover flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-zinc-700 transition sm:h-10 sm:w-10 ${isAccount ? activeClass : ""}`}
           >
             <svg
               viewBox="0 0 24 24"
