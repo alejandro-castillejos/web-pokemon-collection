@@ -200,7 +200,7 @@ export default function SetDetailsPage({
             </GlassPanel>
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              {cards.map((card) => (
+              {cards.map((card, index) => (
                 <PokemonCard
                 key={card.id}
                 setId={set.id}
@@ -208,6 +208,7 @@ export default function SetDetailsPage({
                 number={String(card.localId)}
                 name={card.name}
                 image={card.image}
+                priority={index === 0}
                 owned={ownedCardIds.has(card.id)}
                 wishlist={wishlistCardIds.has(card.id)}
                 basePath={basePath}
