@@ -50,7 +50,29 @@ export default function LoginForm({
 
     const form = formRef.current;
 
-    if (!form || !form.reportValidity()) {
+    if (!form) {
+      return;
+    }
+
+    if (mode === "signup") {
+      const signupPassword = String(
+        new FormData(form).get("password") ?? ""
+      );
+      const isValidPassword =
+        signupPassword.length >= 8 &&
+        /[a-z]/.test(signupPassword) &&
+        /[A-Z]/.test(signupPassword) &&
+        /[0-9]/.test(signupPassword);
+
+      if (!isValidPassword) {
+        setError(
+          "Para crear una cuenta, la contraseña debe tener al menos 8 caracteres e incluir una minúscula, una mayúscula y un número."
+        );
+        return;
+      }
+    }
+
+    if (!form.reportValidity()) {
       return;
     }
 
