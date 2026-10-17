@@ -76,10 +76,21 @@ export async function signup(
     };
   }
 
-  if (password.length < 6) {
+  const hasMinimumLength = password.length >= 8;
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasDigit = /[0-9]/.test(password);
+
+  if (
+    !hasMinimumLength ||
+    !hasLowercase ||
+    !hasUppercase ||
+    !hasDigit
+  ) {
     return {
       success: false,
-      error: "La contraseña debe tener al menos 6 caracteres.",
+      error:
+        "La contraseña debe tener al menos 8 caracteres e incluir una minúscula, una mayúscula y un número.",
     };
   }
 
