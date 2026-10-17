@@ -75,15 +75,13 @@ export default function SetDetailsPage({
           <div className="mt-3 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               {set.logo ? (
-                <div className="mb-5 flex h-20 items-center">
+                <div className="relative mb-5 h-20 w-full max-w-xs">
                   <Image
                     src={`${set.logo}.webp`}
                     alt={`Logo de ${set.name}`}
-                    width={320}
-                    height={80}
+                    fill
                     sizes="320px"
                     quality={90}
-                    style={{ width: "auto", height: "auto", maxWidth: "320px", maxHeight: "80px" }}
                     className="object-contain"
                   />
                 </div>
