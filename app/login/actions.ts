@@ -7,6 +7,25 @@ export type AuthActionResult =
   | { success: true; redirectTo: string }
   | { success: false; error: string };
 
+function getSafeRedirectPath(value: FormDataEntryValue | null): string {
+  const path = typeof value === "string" ? value.trim() : "";
+
+  // Only allow relative paths on this site to prevent open redirects.
+  if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) {
+    return "/";
+  }
+
+  try {
+    const parsed = new URL(path, "https://pokemon-collection.invalid");
+    if (parsed.origin !== "https://pokemon-collection.invalid") {
+      return "/";
+    }
+    return parsed.pathname + parsed.search + parsed.hash;
+  } catch {
+    return "/";
+  }
+}
+
 export async function login(
   formData: FormData
 ): Promise<AuthActionResult> {
@@ -38,7 +57,7 @@ export async function login(
 
   return {
     success: true,
-    redirectTo: "/",
+    redirectTo: getSafeRedirectPath(formData.get("redirectTo")),
   };
 }
 
@@ -64,48 +83,9 @@ export async function signup(
     };
   }
 
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  const siteUrl =
-    configuredSiteUrl ||
-    (process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : "");
-
-  let emailRedirectTo: string;
-
-  try {
-    if (!siteUrl) {
-      throw new Error("Missing canonical site URL");
-    }
-
-    const parsedSiteUrl = new URL(siteUrl);
-    const isLocalHttp =
-      parsedSiteUrl.protocol === "http:" &&
-      ["localhost", "127.0.0.1"].includes(parsedSiteUrl.hostname);
-    const isSecurePublicUrl = parsedSiteUrl.protocol === "https:";
-
-    if (!isLocalHttp && !isSecurePublicUrl) {
-      throw new Error("Invalid canonical site URL");
-    }
-
-    emailRedirectTo = new URL(
-      "/auth/callback",
-      parsedSiteUrl.origin
-    ).toString();
-  } catch {
-    return {
-      success: false,
-      error:
-        "No se pudo preparar el enlace de confirmación. Configura NEXT_PUBLIC_SITE_URL con la dirección HTTPS del sitio.",
-    };
-  }
-
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: {
-      emailRedirectTo,
-    },
   });
 
   if (error) {
@@ -119,6 +99,6 @@ export async function signup(
 
   return {
     success: true,
-    redirectTo: "/login?status=signup",
+    redirectTo: getSafeRedirectPath(formData.get("redirectTo")),
   };
 }
