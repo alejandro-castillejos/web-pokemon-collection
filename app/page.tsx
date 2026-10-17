@@ -161,28 +161,37 @@ export default async function Home() {
         >
           <defs>
             <linearGradient id="glass-ribbon-a" x1="150" y1="50" x2="610" y2="450" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FFFFFF" stopOpacity=".92" />
-              <stop offset=".48" stopColor="#DDE8F2" stopOpacity=".42" />
-              <stop offset="1" stopColor="#FFFFFF" stopOpacity=".08" />
+              <stop stopColor="#FFFFFF" stopOpacity=".96" />
+              <stop offset=".22" stopColor="#D8F4FA" stopOpacity=".82" />
+              <stop offset=".38" stopColor="#B9E7F1" stopOpacity=".76" />
+              <stop offset=".52" stopColor="#E6C8E8" stopOpacity=".72" />
+              <stop offset=".66" stopColor="#D6E7F5" stopOpacity=".78" />
+              <stop offset=".82" stopColor="#A8DCEB" stopOpacity=".62" />
+              <stop offset="1" stopColor="#FFFFFF" stopOpacity=".12" />
             </linearGradient>
             <linearGradient id="glass-ribbon-b" x1="350" y1="20" x2="700" y2="420" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FFFFFF" stopOpacity=".8" />
-              <stop offset=".5" stopColor="#D8DEE8" stopOpacity=".24" />
-              <stop offset="1" stopColor="#FFFFFF" stopOpacity=".04" />
+              <stop stopColor="#FDFEFF" stopOpacity=".9" />
+              <stop offset=".24" stopColor="#D6F4F4" stopOpacity=".76" />
+              <stop offset=".43" stopColor="#C2DFF6" stopOpacity=".7" />
+              <stop offset=".59" stopColor="#E9C9E7" stopOpacity=".64" />
+              <stop offset=".78" stopColor="#B8E8E9" stopOpacity=".6" />
+              <stop offset="1" stopColor="#FFFFFF" stopOpacity=".08" />
             </linearGradient>
             <radialGradient id="glass-light" cx="0" cy="0" r="1" gradientTransform="matrix(-290 250 -220 -255 560 120)" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#FFFFFF" stopOpacity=".95" />
-              <stop offset=".52" stopColor="#E5EDF5" stopOpacity=".48" />
+              <stop stopColor="#FFFFFF" stopOpacity=".98" />
+              <stop offset=".28" stopColor="#DDF4FA" stopOpacity=".76" />
+              <stop offset=".55" stopColor="#D8D9F0" stopOpacity=".48" />
+              <stop offset=".76" stopColor="#F2E6F2" stopOpacity=".3" />
               <stop offset="1" stopColor="#F4F6F9" stopOpacity="0" />
             </radialGradient>
           </defs>
           <ellipse cx="500" cy="190" rx="300" ry="250" fill="url(#glass-light)" />
           <path d="M330 -20C470 45 480 130 610 160C690 178 735 230 790 300L790 430C680 345 615 340 535 280C435 205 400 120 280 85C230 70 205 25 195 -20H330Z" fill="url(#glass-ribbon-a)" />
           <path d="M470 -30C565 65 545 135 650 205C700 238 735 275 780 330L780 395C690 340 625 300 580 245C515 165 505 100 400 30L470 -30Z" fill="url(#glass-ribbon-b)" />
-          <path d="M220 10C340 75 365 155 475 205C565 246 610 300 680 370" stroke="#FFFFFF" strokeOpacity=".8" strokeWidth="2" />
-          <path d="M330 0C425 78 435 145 535 205C600 245 650 295 715 350" stroke="#D4DDE7" strokeOpacity=".62" strokeWidth="1.5" />
-          <path d="M410 -10C485 70 485 120 565 175C640 228 670 260 740 315" stroke="#FFFFFF" strokeOpacity=".72" strokeWidth="1.5" />
-          <path d="M270 95C365 130 390 215 500 265C570 298 615 350 660 405" stroke="#FFFFFF" strokeOpacity=".48" strokeWidth="1.5" />
+          <path d="M220 10C340 75 365 155 475 205C565 246 610 300 680 370" stroke="#A9DDEB" strokeOpacity=".9" strokeWidth="2.5" />
+          <path d="M330 0C425 78 435 145 535 205C600 245 650 295 715 350" stroke="#D8BDE3" strokeOpacity=".82" strokeWidth="2" />
+          <path d="M410 -10C485 70 485 120 565 175C640 228 670 260 740 315" stroke="#91D9E8" strokeOpacity=".88" strokeWidth="2" />
+          <path d="M270 95C365 130 390 215 500 265C570 298 615 350 660 405" stroke="#C6E7F1" strokeOpacity=".76" strokeWidth="2" />
         </svg>
       </div>
       <div className="soft-glow left-[-120px] top-[120px] h-72 w-72 bg-blue-300/30" />
