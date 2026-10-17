@@ -36,7 +36,8 @@ export default function SetCard({
               height={160}
               sizes="(max-width: 640px) 82vw, 400px"
               quality={90}
-              className="h-auto max-h-[75%] w-auto max-w-[82%] object-contain transition duration-300 group-hover:scale-105"
+              style={{ width: "auto", height: "auto", maxWidth: "82%", maxHeight: "75%" }}
+              className="object-contain transition duration-300 group-hover:scale-105"
             />
           ) : (
             <div className="text-center">
