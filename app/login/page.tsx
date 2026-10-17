@@ -7,6 +7,7 @@ interface LoginPageProps {
     error?: string;
     status?: string;
     reason?: string;
+    next?: string;
   }>;
 }
 
@@ -69,7 +70,7 @@ export default async function LoginPage({
     } else if (params.status === "signup") {
       initialNotice = {
         title: "Cuenta creada",
-        message: "Revisa tu correo para confirmar tu cuenta.",
+        message: "Tu cuenta está lista. Ya puedes empezar a usar Pokémon TCG Collection.",
         tone: "success",
       };
     }
@@ -104,6 +105,7 @@ export default async function LoginPage({
               key={`${params.status ?? ""}:${params.reason ?? ""}:${params.error ?? ""}`}
               initialError={initialError}
               initialNotice={initialNotice}
+              redirectTo={params.next}
             />
 
             <div className="mt-6 border-t border-black/5 pt-6 text-center">
