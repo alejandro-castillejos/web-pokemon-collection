@@ -9,6 +9,7 @@ interface CardImageProps {
   name: string;
   number: string;
   quality?: "low" | "high";
+  priority?: boolean;
   className?: string;
 }
 
@@ -18,6 +19,7 @@ export default function CardImage({
   name,
   number,
   quality = "low",
+  priority = false,
   className = "",
 }: CardImageProps) {
   const [failedImageUrl, setFailedImageUrl] = useState<string | null>(null);
@@ -62,7 +64,8 @@ export default function CardImage({
       }
       quality={90}
       className={className}
-      loading={isDetailImage ? "eager" : "lazy"}
+      loading={isDetailImage || priority ? "eager" : "lazy"}
+      fetchPriority={isDetailImage || priority ? "high" : "auto"}
       onError={() => setFailedImageUrl(imageUrl)}
     />
   );
