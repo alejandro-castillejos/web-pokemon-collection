@@ -9,6 +9,7 @@ interface PokemonCardProps {
   number: string;
   name: string;
   image?: string;
+  priority?: boolean;
   owned?: boolean;
   wishlist?: boolean;
   setName?: string;
@@ -21,6 +22,7 @@ export default function PokemonCard({
   number,
   name,
   image,
+  priority = false,
   owned = false,
   wishlist = false,
   setName,
@@ -36,6 +38,7 @@ export default function PokemonCard({
             name={name}
             number={number}
             quality="low"
+            priority={priority}
             className="block w-full transition duration-300 group-hover:scale-[1.02]"
           />
         </div>
