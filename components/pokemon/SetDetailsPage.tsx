@@ -83,7 +83,8 @@ export default function SetDetailsPage({
                     height={80}
                     sizes="320px"
                     quality={90}
-                    className="h-auto max-h-20 max-w-xs w-auto object-contain"
+                    style={{ width: "auto", height: "auto", maxWidth: "320px", maxHeight: "80px" }}
+                    className="object-contain"
                   />
                 </div>
               ) : null}
