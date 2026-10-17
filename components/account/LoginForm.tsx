@@ -11,6 +11,7 @@ interface LoginFormProps {
     message: string;
     tone: "success" | "info";
   } | null;
+  redirectTo?: string;
 }
 
 type AuthMode = "login" | "signup";
@@ -18,6 +19,7 @@ type AuthMode = "login" | "signup";
 export default function LoginForm({
   initialError,
   initialNotice = null,
+  redirectTo = "/",
 }: LoginFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -83,6 +85,8 @@ export default function LoginForm({
         handleSubmit("login");
       }}
     >
+      <input type="hidden" name="redirectTo" value={redirectTo} />
+
       {notice && (
         <div
           role="status"
