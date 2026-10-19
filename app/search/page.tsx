@@ -478,10 +478,10 @@ function SearchResults({
                 key={item.value}
                 href={href}
                 aria-current={isActive ? "page" : undefined}
-                className={`shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors ${
                   isActive
-                    ? "bg-[#111111] text-white shadow-sm"
-                    : "glass-hover glass text-zinc-600 hover:text-zinc-900"
+                    ? "border-[#111111] bg-[#111111] text-white"
+                    : "border-black/5 bg-white/60 text-zinc-600 hover:bg-white/95 hover:text-zinc-900"
                 }`}
               >
                 {item.label}
