@@ -25,6 +25,7 @@ interface SearchPageProps {
     q?: string;
     scope?: string;
     setId?: string;
+    page?: string;
   }>;
 }
 
@@ -32,6 +33,29 @@ function matchesQuery(value: string, query: string) {
   return value
     .toLocaleLowerCase("es")
     .includes(query.toLocaleLowerCase("es"));
+}
+
+const SEARCH_CARDS_PER_PAGE = 12;
+const SEARCH_SETS_PER_PAGE = 6;
+const MAX_SEARCH_PAGE = 100;
+
+function buildNextPageHref(
+  query: string,
+  scope: SearchScope,
+  page: number,
+  setId?: string
+) {
+  const params = new URLSearchParams({
+    q: query,
+    scope,
+    page: String(page + 1),
+  });
+
+  if (setId) {
+    params.set("setId", setId);
+  }
+
+  return `/search?${params.toString()}`;
 }
 
 async function getUserCardStateIds(
@@ -86,6 +110,14 @@ export default async function SearchPage({
   ].includes(params.scope as SearchScope)
     ? (params.scope as SearchScope)
     : "all";
+
+  const requestedPage = Number.parseInt(params.page ?? "1", 10);
+  const page =
+    Number.isFinite(requestedPage) && requestedPage > 0
+      ? Math.min(requestedPage, MAX_SEARCH_PAGE)
+      : 1;
+  const cardLimit = page * SEARCH_CARDS_PER_PAGE;
+  const setLimit = page * SEARCH_SETS_PER_PAGE;
 
   if (!query) {
     return (
@@ -186,22 +218,20 @@ export default async function SearchPage({
       [...savedCardIds].map((cardId) => getSetIdFromCardId(cardId))
     );
 
-    const matchingSets = sets
-      .filter(
-        (set) =>
-          savedSetIds.has(set.id) &&
-          (matchesQuery(set.name, query) ||
-            matchesQuery(set.id, query))
-      )
-      .slice(0, 6);
+    const matchingSetsAll = sets.filter(
+      (set) =>
+        savedSetIds.has(set.id) &&
+        (matchesQuery(set.name, query) ||
+          matchesQuery(set.id, query))
+    );
+    const matchingSets = matchingSetsAll.slice(0, setLimit);
 
     const setNames = new Map(
       sets.map((set) => [set.id, set.name])
     );
 
-    const matchingCards = cards
+    const matchingCardsAll = cards
       .filter((card) => savedCardIds.has(card.id))
-      .slice(0, 12)
       .map((card) => {
         const setId = getSetIdFromCardId(card.id);
 
@@ -214,6 +244,7 @@ export default async function SearchPage({
           setName: setNames.get(setId) ?? setId,
         };
       });
+    const matchingCards = matchingCardsAll.slice(0, cardLimit);
 
     return (
       <SearchResults
@@ -242,6 +273,14 @@ export default async function SearchPage({
         cards={matchingCards}
         collectionCardIds={collectionCardIds}
         wishlistCardIds={wishlistCardIds}
+        totalSetResults={matchingSetsAll.length}
+        totalCardResults={matchingCardsAll.length}
+        hasMore={
+          page < MAX_SEARCH_PAGE &&
+          (matchingSetsAll.length > setLimit ||
+            matchingCardsAll.length > cardLimit)
+        }
+        nextPageHref={buildNextPageHref(query, scope, page, params.setId)}
       />
     );
   }
@@ -260,13 +299,12 @@ export default async function SearchPage({
     const { collectionCardIds, wishlistCardIds } =
       await getUserCardStateIds(supabase);
 
-    const cards = (set.cards ?? [])
+    const matchingCards = (set.cards ?? [])
       .filter(
         (card) =>
           matchesQuery(card.name, query) ||
           matchesQuery(String(card.localId), query)
       )
-      .slice(0, 12)
       .map((card) => ({
         id: card.id,
         setId: set.id,
@@ -275,6 +313,7 @@ export default async function SearchPage({
         image: card.image,
         setName: set.name,
       }));
+    const cards = matchingCards.slice(0, cardLimit);
 
     return (
       <SearchResults
@@ -284,6 +323,9 @@ export default async function SearchPage({
         cards={cards}
         collectionCardIds={collectionCardIds}
         wishlistCardIds={wishlistCardIds}
+        totalCardResults={matchingCards.length}
+        hasMore={page < MAX_SEARCH_PAGE && matchingCards.length > cardLimit}
+        nextPageHref={buildNextPageHref(query, scope, page, params.setId)}
       />
     );
   }
@@ -301,40 +343,48 @@ export default async function SearchPage({
           wishlistCardIds: new Set<string>(),
         };
 
-  const matchingSets = sets
-    .filter(
-      (set) =>
-        matchesQuery(set.name, query) ||
-        matchesQuery(set.id, query)
-    )
-    .slice(0, 6);
+  const matchingSetsAll = sets.filter(
+    (set) =>
+      matchesQuery(set.name, query) ||
+      matchesQuery(set.id, query)
+  );
+  const matchingSets = matchingSetsAll.slice(0, setLimit);
 
   const setNames = new Map(
     sets.map((set) => [set.id, set.name])
   );
 
-  const matchingCards = cards
-    .slice(0, 12)
-    .map((card) => {
-      const setId = getSetIdFromCardId(card.id);
+  const matchingCardsAll = cards.map((card) => {
+    const setId = getSetIdFromCardId(card.id);
 
-      return {
-        id: card.id,
-        setId,
-        localId: String(card.localId),
-        name: card.name,
-        image: card.image,
-        setName: setNames.get(setId) ?? setId,
-      };
-    });
+    return {
+      id: card.id,
+      setId,
+      localId: String(card.localId),
+      name: card.name,
+      image: card.image,
+      setName: setNames.get(setId) ?? setId,
+    };
+  });
+  const matchingCards = matchingCardsAll.slice(0, cardLimit);
 
-  const searchSets = matchingSets.map((set) => ({
+  const searchSetsAll = matchingSetsAll.map((set) => ({
     id: set.id,
     name: set.name,
     logo: set.logo,
     cards: set.cardCount?.total ?? 0,
     progress: 0,
   }));
+  const searchSets = searchSetsAll.slice(0, setLimit);
+  const totalSetResults =
+    scope === "sets" || scope === "all" ? matchingSetsAll.length : 0;
+  const totalCardResults =
+    scope === "sets" ? 0 : matchingCardsAll.length;
+  const hasMore =
+    page < MAX_SEARCH_PAGE &&
+    ((scope === "sets" || scope === "all") &&
+      totalSetResults > setLimit ||
+      scope !== "sets" && totalCardResults > cardLimit);
 
   return (
     <SearchResults
@@ -344,6 +394,10 @@ export default async function SearchPage({
       cards={scope === "sets" ? [] : matchingCards}
       collectionCardIds={collectionCardIds}
       wishlistCardIds={wishlistCardIds}
+      totalSetResults={totalSetResults}
+      totalCardResults={totalCardResults}
+      hasMore={hasMore}
+      nextPageHref={buildNextPageHref(query, scope, page, params.setId)}
     />
   );
 }
@@ -353,6 +407,10 @@ interface SearchResultsProps {
   scope: SearchScope;
   collectionCardIds?: Set<string>;
   wishlistCardIds?: Set<string>;
+  totalSetResults?: number;
+  totalCardResults?: number;
+  hasMore?: boolean;
+  nextPageHref?: string;
   sets: Array<{
     id: string;
     name: string;
@@ -376,6 +434,10 @@ function SearchResults({
   scope,
   collectionCardIds = new Set<string>(),
   wishlistCardIds = new Set<string>(),
+  totalSetResults,
+  totalCardResults,
+  hasMore = false,
+  nextPageHref,
   sets,
   cards,
 }: SearchResultsProps) {
@@ -394,6 +456,8 @@ function SearchResults({
         : "/sets";
 
   const hasResults = sets.length > 0 || cards.length > 0;
+  const allSetResults = totalSetResults ?? sets.length;
+  const allCardResults = totalCardResults ?? cards.length;
 
   return (
     <main className="px-4 pb-10 pt-6 sm:px-6 lg:px-8">
@@ -409,6 +473,13 @@ function SearchResults({
 
           <p className="mt-2 text-sm text-zinc-500">
             Resultados para “{query}”
+          </p>
+          <p className="mt-2 text-xs text-zinc-400">
+            {allCardResults > 0 &&
+              `Mostrando ${cards.length} de ${allCardResults} cartas`}
+            {allCardResults > 0 && allSetResults > 0 && " · "}
+            {allSetResults > 0 &&
+              `Mostrando ${sets.length} de ${allSetResults} sets`}
           </p>
         </section>
 
@@ -483,6 +554,18 @@ function SearchResults({
                 </div>
               </section>
             )}
+          </div>
+        )}
+        {hasMore && nextPageHref && (
+          <div className="mt-10 flex justify-center">
+            <Link
+              href={nextPageHref}
+              scroll={false}
+              className="yellow-button inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-[#111111]"
+            >
+              Cargar más resultados
+              <span aria-hidden="true">↓</span>
+            </Link>
           </div>
         )}
       </div>
