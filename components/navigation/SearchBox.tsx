@@ -194,7 +194,7 @@ export default function SearchBox() {
             value={query}
             onChange={(event) => handleQueryChange(event.target.value)}
             onFocus={() => {
-              if (results.length > 0) setOpen(true);
+              if (query.trim().length >= 2) setOpen(true);
             }}
             placeholder={placeholder}
             aria-label={placeholder}
@@ -268,7 +268,7 @@ export default function SearchBox() {
                 value={query}
                 onChange={(event) => handleQueryChange(event.target.value)}
                 onFocus={() => {
-                  if (results.length > 0) setOpen(true);
+                  if (query.trim().length >= 2) setOpen(true);
                 }}
                 placeholder={placeholder}
                 aria-label={placeholder}
