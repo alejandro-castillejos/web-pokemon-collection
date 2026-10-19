@@ -14,38 +14,6 @@ export default function Navbar() {
   const isWishlist = pathname.startsWith("/wishlist");
   const isAccount = pathname.startsWith("/account");
 
-  const searchScope = isSets
-    ? pathname === "/sets"
-      ? "sets"
-      : "set-cards"
-    : isCollection
-      ? "collection"
-      : isWishlist
-        ? "wishlist"
-        : "all";
-
-  const searchSetId =
-    isSets && pathname !== "/sets"
-      ? pathname.split("/")[2] ?? ""
-      : "";
-
-  let searchPlaceholder = "Buscar cartas, sets...";
-
-  if (isSets) {
-    searchPlaceholder =
-      pathname === "/sets"
-        ? "Buscar sets..."
-        : "Buscar cartas...";
-  }
-
-  if (isCollection) {
-    searchPlaceholder = "Buscar en mi colección...";
-  }
-
-  if (isWishlist) {
-    searchPlaceholder = "Buscar en mi wishlist...";
-  }
-
   const activeClass =
     "bg-white/70 font-semibold text-zinc-900 shadow-sm";
   const inactiveClass =
@@ -188,12 +156,7 @@ export default function Navbar() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          <SearchBox
-            key={pathname}
-            scope={searchScope}
-            setId={searchSetId}
-            placeholder={searchPlaceholder}
-          />
+          <SearchBox key={pathname} />
 
           <Link
             href="/account"
