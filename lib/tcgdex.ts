@@ -93,13 +93,78 @@ const getCachedSet = unstable_cache(
   }
 );
 
+export interface TCGdexPriceVariant {
+  lowPrice?: number | null;
+  midPrice?: number | null;
+  highPrice?: number | null;
+  marketPrice?: number | null;
+  directLowPrice?: number | null;
+}
+
+export interface TCGdexTCGPlayerPricing {
+  updated?: string | number;
+  unit?: string;
+  [variant: string]:
+    | string
+    | number
+    | TCGdexPriceVariant
+    | null
+    | undefined;
+}
+
+export interface TCGdexCardmarketPricing {
+  updated?: string | number;
+  unit?: string;
+  avg?: number | null;
+  low?: number | null;
+  trend?: number | null;
+  "avg-holo"?: number | null;
+  "low-holo"?: number | null;
+  "trend-holo"?: number | null;
+}
+
+export interface TCGdexPricing {
+  tcgplayer?: TCGdexTCGPlayerPricing | null;
+  cardmarket?: TCGdexCardmarketPricing | null;
+}
+
+interface TCGdexCardResponse {
+  id: string;
+  localId: string | number;
+  name: string;
+  image?: string;
+  category: string;
+  rarity?: string;
+  set: {
+    id: string;
+  };
+  pricing?: TCGdexPricing | null;
+}
+
 const getCachedCard = unstable_cache(
   async (cardId: string) => {
-    const card = await tcgdex.card.get(cardId);
+    // Read the REST response directly so optional pricing fields remain
+    // available even if the installed SDK types do not expose them yet.
+    const response = await fetch(
+      `https://api.tcgdex.net/v2/en/cards/${encodeURIComponent(cardId)}`,
+      {
+        next: {
+          revalidate: 3600,
+        },
+      }
+    );
 
-    if (!card) {
+    if (response.status === 404) {
       return null;
     }
+
+    if (!response.ok) {
+      throw new Error(
+        `Error obteniendo la carta desde TCGdex: ${response.status}`
+      );
+    }
+
+    const card = (await response.json()) as TCGdexCardResponse;
 
     return {
       id: card.id,
@@ -111,9 +176,10 @@ const getCachedCard = unstable_cache(
       set: {
         id: card.set.id,
       },
+      pricing: card.pricing ?? null,
     };
   },
-  ["tcgdex-card-details-v2"],
+  ["tcgdex-card-details-v3"],
   {
     revalidate: 3600,
     tags: ["tcgdex-cards"],
