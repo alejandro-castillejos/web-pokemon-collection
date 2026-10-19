@@ -5,13 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-type SearchScope =
-  | "all"
-  | "sets"
-  | "set-cards"
-  | "collection"
-  | "wishlist";
-
 interface SearchResult {
   type: "card" | "set";
   id: string;
@@ -23,17 +16,8 @@ interface SearchResult {
   href: string;
 }
 
-interface SearchBoxProps {
-  scope: SearchScope;
-  setId?: string;
-  placeholder: string;
-}
-
-export default function SearchBox({
-  scope,
-  setId = "",
-  placeholder,
-}: SearchBoxProps) {
+export default function SearchBox() {
+  const placeholder = "Buscar cartas, sets...";
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [open, setOpen] = useState(false);
@@ -101,12 +85,8 @@ export default function SearchBox({
       try {
         const params = new URLSearchParams({
           q: normalizedQuery,
-          scope,
+          scope: "all",
         });
-
-        if (setId) {
-          params.set("setId", setId);
-        }
 
         const response = await fetch(
           `/api/search-preview?${params.toString()}`,
@@ -139,7 +119,7 @@ export default function SearchBox({
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [query, scope, setId]);
+  }, [query]);
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -170,12 +150,8 @@ export default function SearchBox({
 
     const params = new URLSearchParams({
       q: normalizedQuery,
-      scope,
+      tab: "all",
     });
-
-    if (setId) {
-      params.set("setId", setId);
-    }
 
     setOpen(false);
     setMobileOpen(false);
@@ -183,9 +159,14 @@ export default function SearchBox({
   }
 
   const searchIcon = (
-    <span className="mr-2 text-sm text-zinc-400" aria-hidden="true">
+    <button
+      type="submit"
+      aria-label="Ver todos los resultados"
+      title="Ver todos los resultados"
+      className="mr-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm text-zinc-400 transition hover:bg-black/5 hover:text-zinc-800"
+    >
       ⌕
-    </span>
+    </button>
   );
 
   const loadingIcon = loading ? (
@@ -224,7 +205,7 @@ export default function SearchBox({
         </form>
 
         {open && (
-          <SearchDropdown results={results} onClose={closeSearch} />
+          <SearchDropdown results={results} query={query} onClose={closeSearch} />
         )}
       </div>
 
@@ -300,6 +281,7 @@ export default function SearchBox({
             {open && (
               <SearchDropdown
                 results={results}
+                query={query}
                 onClose={closeSearch}
                 mobile
               />
@@ -313,14 +295,18 @@ export default function SearchBox({
 
 function SearchDropdown({
   results,
+  query,
   mobile = false,
   onClose,
 }: {
   results: SearchResult[];
+  query: string;
   mobile?: boolean;
   onClose: () => void;
 }) {
-  if (results.length === 0) {
+  const normalizedQuery = query.trim();
+
+  if (results.length === 0 && normalizedQuery.length < 2) {
     return null;
   }
 
@@ -332,60 +318,77 @@ function SearchDropdown({
           : "right-0 top-[calc(100%+8px)]"
       }`}
     >
-      {results.map((result) => (
-        <Link
-          key={`${result.type}-${result.id}`}
-          href={result.href}
-          onClick={onClose}
-          className="flex items-center gap-3 rounded-[16px] px-2.5 py-2.5 transition hover:bg-black/5"
-        >
-          <div className="flex h-11 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-zinc-100">
-            {result.type === "card" && result.image ? (
-              <Image
-                src={`${result.image}/low.webp`}
-                alt={result.name}
-                width={36}
-                height={44}
-                sizes="36px"
-                quality={85}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : result.logo ? (
-              <Image
-                src={`${result.logo}.webp`}
-                alt={result.name}
-                width={70}
-                height={32}
-                sizes="70px"
-                quality={85}
-                className="h-auto max-h-8 w-auto max-w-[70px] object-contain"
-                loading="lazy"
-              />
-            ) : (
-              <span className="text-[10px] font-semibold text-zinc-400">
-                TCG
-              </span>
-            )}
-          </div>
+      {results.length === 0 ? (
+        <p className="px-3 py-3 text-sm text-zinc-500">
+          No encontramos coincidencias directas.
+        </p>
+      ) : (
+        results.map((result) => (
+          <Link
+            key={`${result.type}-${result.id}`}
+            href={result.href}
+            onClick={onClose}
+            className="flex items-center gap-3 rounded-[16px] px-2.5 py-2.5 transition hover:bg-black/5"
+          >
+            <div className="flex h-11 w-9 shrink-0 items-center justify-center overflow-hidden rounded-[9px] bg-zinc-100">
+              {result.type === "card" && result.image ? (
+                <Image
+                  src={`${result.image}/low.webp`}
+                  alt={result.name}
+                  width={36}
+                  height={44}
+                  sizes="36px"
+                  quality={85}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : result.logo ? (
+                <Image
+                  src={`${result.logo}.webp`}
+                  alt={result.name}
+                  width={70}
+                  height={32}
+                  sizes="70px"
+                  quality={85}
+                  className="h-auto max-h-8 w-auto max-w-[70px] object-contain"
+                  loading="lazy"
+                />
+              ) : (
+                <span className="text-[10px] font-semibold text-zinc-400">
+                  TCG
+                </span>
+              )}
+            </div>
 
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-zinc-900">
-              {result.name}
-            </p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-zinc-900">
+                {result.name}
+              </p>
 
-            {result.type === "card" ? (
-              <p className="mt-0.5 truncate text-[11px] text-zinc-500">
-                {result.setName} · #{result.localId}
-              </p>
-            ) : (
-              <p className="mt-0.5 truncate text-[11px] text-zinc-500">
-                {result.id}
-              </p>
-            )}
-          </div>
-        </Link>
-      ))}
+              {result.type === "card" ? (
+                <p className="mt-0.5 truncate text-[11px] text-zinc-500">
+                  {result.setName} · #{result.localId}
+                </p>
+              ) : (
+                <p className="mt-0.5 truncate text-[11px] text-zinc-500">
+                  {result.id}
+                </p>
+              )}
+            </div>
+          </Link>
+        ))
+      )}
+
+      <Link
+        href={`/search?q=${encodeURIComponent(normalizedQuery)}&tab=all`}
+        onClick={onClose}
+        className="mt-1 flex items-center justify-between gap-3 rounded-[16px] border-t border-black/5 px-3 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-black/5"
+      >
+        <span className="min-w-0 truncate">
+          Ver todos los resultados para “{normalizedQuery}”
+        </span>
+        <span aria-hidden="true">→</span>
+      </Link>
     </div>
   );
 }
