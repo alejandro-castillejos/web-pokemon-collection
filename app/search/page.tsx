@@ -21,10 +21,13 @@ type SearchScope =
   | "collection"
   | "wishlist";
 
+type SearchTab = "all" | "cards" | "sets" | "collection" | "wishlist";
+
 interface SearchPageProps {
   searchParams: Promise<{
     q?: string;
     scope?: string;
+    tab?: string;
     setId?: string;
     page?: string;
   }>;
@@ -40,21 +43,12 @@ const SEARCH_CARDS_PER_PAGE = 12;
 const SEARCH_SETS_PER_PAGE = 6;
 const MAX_SEARCH_PAGE = 100;
 
-function buildNextPageHref(
-  query: string,
-  scope: SearchScope,
-  page: number,
-  setId?: string
-) {
+function buildNextPageHref(query: string, tab: SearchTab, page: number) {
   const params = new URLSearchParams({
     q: query,
-    scope,
+    tab,
     page: String(page + 1),
   });
-
-  if (setId) {
-    params.set("setId", setId);
-  }
 
   return `/search?${params.toString()}`;
 }
@@ -102,7 +96,7 @@ export default async function SearchPage({
 }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim().slice(0, 80) ?? "";
-  const scope: SearchScope = [
+  const legacyScope: SearchScope = [
     "all",
     "sets",
     "set-cards",
@@ -111,6 +105,30 @@ export default async function SearchPage({
   ].includes(params.scope as SearchScope)
     ? (params.scope as SearchScope)
     : "all";
+
+  const fallbackTab: SearchTab =
+    legacyScope === "set-cards"
+      ? "cards"
+      : legacyScope === "sets" ||
+          legacyScope === "collection" ||
+          legacyScope === "wishlist"
+        ? legacyScope
+        : "all";
+
+  const tab: SearchTab = [
+    "all",
+    "cards",
+    "sets",
+    "collection",
+    "wishlist",
+  ].includes(params.tab as SearchTab)
+    ? (params.tab as SearchTab)
+    : fallbackTab;
+
+  const scope: SearchScope =
+    tab === "sets" || tab === "collection" || tab === "wishlist"
+      ? tab
+      : "all";
 
   const requestedPage = Number.parseInt(params.page ?? "1", 10);
   const page =
@@ -151,10 +169,7 @@ export default async function SearchPage({
                 placeholder="Buscar..."
                 className="min-w-0 flex-1 rounded-full border border-black/5 bg-white/65 px-4 py-3 text-sm outline-none transition placeholder:text-zinc-400 focus:border-yellow-400 focus:bg-white/80"
               />
-              <input type="hidden" name="scope" value={scope} />
-              {params.setId && (
-                <input type="hidden" name="setId" value={params.setId} />
-              )}
+              <input type="hidden" name="tab" value="all" />
               <button
                 type="submit"
                 className="yellow-button shrink-0 rounded-full px-5 py-3 text-sm font-semibold"
@@ -179,7 +194,10 @@ export default async function SearchPage({
       const reason =
         scope === "collection" ? "collection" : "wishlist";
 
-      redirect(`/login?reason=${reason}`);
+      const returnTo = `/search?q=${encodeURIComponent(query)}&tab=${scope}`;
+      redirect(
+        `/login?reason=${reason}&next=${encodeURIComponent(returnTo)}`
+      );
     }
 
     const [{ data: savedRows, error: savedError }, { data: collectionRows, error: collectionError }, { data: wishlistRows, error: wishlistError }, sets, cards] = await Promise.all([
@@ -251,6 +269,7 @@ export default async function SearchPage({
       <SearchResults
         query={query}
         scope={scope}
+        activeTab={tab}
         sets={matchingSets.map((set) => {
           const savedCount = [...savedCardIds].filter(
             (cardId) => getSetIdFromCardId(cardId) === set.id
@@ -281,52 +300,7 @@ export default async function SearchPage({
           (matchingSetsAll.length > setLimit ||
             matchingCardsAll.length > cardLimit)
         }
-        nextPageHref={buildNextPageHref(query, scope, page, params.setId)}
-      />
-    );
-  }
-
-  if (scope === "set-cards") {
-    if (!params.setId) {
-      return <SearchResults query={query} scope={scope} sets={[]} cards={[]} />;
-    }
-
-    const set = await getSet(params.setId);
-
-    if (!set) {
-      return <SearchResults query={query} scope={scope} sets={[]} cards={[]} />;
-    }
-
-    const { collectionCardIds, wishlistCardIds } =
-      await getUserCardStateIds(supabase);
-
-    const matchingCards = (set.cards ?? [])
-      .filter(
-        (card) =>
-          matchesQuery(card.name, query) ||
-          matchesQuery(String(card.localId), query)
-      )
-      .map((card) => ({
-        id: card.id,
-        setId: set.id,
-        localId: String(card.localId),
-        name: card.name,
-        image: card.image,
-        setName: set.name,
-      }));
-    const cards = matchingCards.slice(0, cardLimit);
-
-    return (
-      <SearchResults
-        query={query}
-        scope={scope}
-        sets={[]}
-        cards={cards}
-        collectionCardIds={collectionCardIds}
-        wishlistCardIds={wishlistCardIds}
-        totalCardResults={matchingCards.length}
-        hasMore={page < MAX_SEARCH_PAGE && matchingCards.length > cardLimit}
-        nextPageHref={buildNextPageHref(query, scope, page, params.setId)}
+        nextPageHref={buildNextPageHref(query, tab, page)}
       />
     );
   }
@@ -376,27 +350,29 @@ export default async function SearchPage({
   }));
   const searchSets = searchSetsAll.slice(0, setLimit);
   const totalSetResults =
-    scope === "sets" || scope === "all" ? matchingSetsAll.length : 0;
+    tab === "sets" || tab === "all" ? matchingSetsAll.length : 0;
   const totalCardResults =
-    scope === "sets" ? 0 : matchingCardsAll.length;
+    tab === "sets" ? 0 : matchingCardsAll.length;
   const hasMore =
     page < MAX_SEARCH_PAGE &&
-    ((scope === "sets" || scope === "all") &&
-      totalSetResults > setLimit ||
-      scope !== "sets" && totalCardResults > cardLimit);
+    (
+      ((tab === "sets" || tab === "all") && totalSetResults > setLimit) ||
+      (tab !== "sets" && totalCardResults > cardLimit)
+    );
 
   return (
     <SearchResults
       query={query}
       scope={scope}
-      sets={scope === "sets" || scope === "all" ? searchSets : []}
-      cards={scope === "sets" ? [] : matchingCards}
+      activeTab={tab}
+      sets={tab === "sets" || tab === "all" ? searchSets : []}
+      cards={tab === "sets" ? [] : matchingCards}
       collectionCardIds={collectionCardIds}
       wishlistCardIds={wishlistCardIds}
       totalSetResults={totalSetResults}
       totalCardResults={totalCardResults}
       hasMore={hasMore}
-      nextPageHref={buildNextPageHref(query, scope, page, params.setId)}
+      nextPageHref={buildNextPageHref(query, tab, page)}
     />
   );
 }
@@ -404,6 +380,7 @@ export default async function SearchPage({
 interface SearchResultsProps {
   query: string;
   scope: SearchScope;
+  activeTab: SearchTab;
   collectionCardIds?: Set<string>;
   wishlistCardIds?: Set<string>;
   totalSetResults?: number;
@@ -431,6 +408,7 @@ interface SearchResultsProps {
 function SearchResults({
   query,
   scope,
+  activeTab,
   collectionCardIds = new Set<string>(),
   wishlistCardIds = new Set<string>(),
   totalSetResults,
@@ -481,6 +459,37 @@ function SearchResults({
               `Mostrando ${sets.length} de ${allSetResults} sets`}
           </p>
         </section>
+
+        <nav
+          aria-label="Filtrar resultados de búsqueda"
+          className="mb-8 flex gap-2 overflow-x-auto pb-2"
+        >
+          {([
+            { value: "all", label: "Todo" },
+            { value: "cards", label: "Cartas" },
+            { value: "sets", label: "Sets" },
+            { value: "collection", label: "Mi colección" },
+            { value: "wishlist", label: "Wishlist" },
+          ] satisfies Array<{ value: SearchTab; label: string }>).map((item) => {
+            const isActive = activeTab === item.value;
+            const href = `/search?q=${encodeURIComponent(query)}&tab=${item.value}`;
+
+            return (
+              <Link
+                key={item.value}
+                href={href}
+                aria-current={isActive ? "page" : undefined}
+                className={`shrink-0 rounded-full px-4 py-2.5 text-sm font-semibold transition ${
+                  isActive
+                    ? "bg-[#111111] text-white shadow-sm"
+                    : "glass-hover glass text-zinc-600 hover:text-zinc-900"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
         {!hasResults ? (
           <GlassPanel strong className="p-10 text-center sm:p-16">
