@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import GlassPanel from "@/components/ui/GlassPanel";
@@ -348,8 +349,6 @@ export default async function SearchPage({
       matchesQuery(set.name, query) ||
       matchesQuery(set.id, query)
   );
-  const matchingSets = matchingSetsAll.slice(0, setLimit);
-
   const setNames = new Map(
     sets.map((set) => [set.id, set.name])
   );
