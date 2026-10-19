@@ -4,6 +4,7 @@ import CardImage from "@/components/pokemon/CardImage";
 import { createClient } from "@/lib/supabase/server";
 import CollectionButton from "@/components/pokemon/CollectionButton";
 import WishlistButton from "@/components/pokemon/WishlistButton";
+import CardPricingPanel from "@/components/pokemon/CardPricingPanel";
 import { getCard, getSet } from "@/lib/tcgdex";
 
 type SetData = NonNullable<Awaited<ReturnType<typeof getSet>>>;
@@ -172,6 +173,8 @@ export default async function CardDetailsPage({
                   initialWishlist={wishlist}
                 />
               </div>
+
+              <CardPricingPanel pricing={card.pricing} />
             </div>
           </div>
         </section>
