@@ -7,7 +7,6 @@ import PokemonCard from "@/components/pokemon/PokemonCard";
 
 import {
   getAllSets,
-  getSet,
   getSetIdFromCardId,
   searchCards,
 } from "@/lib/tcgdex";
