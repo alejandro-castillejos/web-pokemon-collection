@@ -2,6 +2,7 @@ import "server-only";
 
 export interface ChasePrice {
   cardNumber: string;
+  cardName: string;
   priceUsd: number;
   rank: number;
   sourceUrl: string;
@@ -110,7 +111,7 @@ export async function getChasePrices(
     base2: "base-set-2",
   };
   const slug = (setId && knownSlugs[setId]) || slugifySetName(setName);
-  const sourceUrl = `https://tcgvault.io/pokemon/sets/${slug}/`;
+  const sourceUrl = `https://tcgvault.io/pokemon/sets/${slug}/chase-cards/`;
 
   try {
     const response = await fetch(sourceUrl, {
