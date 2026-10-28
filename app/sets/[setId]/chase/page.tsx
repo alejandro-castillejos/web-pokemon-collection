@@ -3,6 +3,7 @@ import GlassPanel from "@/components/ui/GlassPanel";
 import PokemonCard from "@/components/pokemon/PokemonCard";
 import { getSet } from "@/lib/tcgdex";
 import { getChasePrices } from "@/lib/chase-cards";
+import { createClient } from "@/lib/supabase/server";
 
 interface ChasePageProps {
   params: Promise<{ setId: string }>;
@@ -11,6 +12,8 @@ interface ChasePageProps {
 export default async function ChasePage({ params }: ChasePageProps) {
   const { setId } = await params;
   const set = await getSet(setId);
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!set) {
     return (
@@ -30,6 +33,19 @@ export default async function ChasePage({ params }: ChasePageProps) {
     (set.cards ?? []).map((card) => String(card.localId)),
     set.id
   );
+  const cardIds = (set.cards ?? []).map((card) => card.id);
+  const ownedIds = new Set<string>();
+  const wishlistIds = new Set<string>();
+
+  if (user && cardIds.length > 0) {
+    const [collectionResult, wishlistResult] = await Promise.all([
+      supabase.from("collection").select("card_id").eq("user_id", user.id).in("card_id", cardIds),
+      supabase.from("wishlist").select("card_id").eq("user_id", user.id).in("card_id", cardIds),
+    ]);
+    collectionResult.data?.forEach((row) => ownedIds.add(row.card_id));
+    wishlistResult.data?.forEach((row) => wishlistIds.add(row.card_id));
+  }
+
   const priceByNumber = new Map(
     source.cards.map((card) => [card.cardNumber, card])
   );
@@ -66,7 +82,7 @@ export default async function ChasePage({ params }: ChasePageProps) {
             Las cartas más valiosas de {set.name}, ordenadas por precio de mercado.
           </p>
           <p className="mt-3 text-xs text-zinc-400">
-            Precios de referencia en USD, en condición Near Mint. Pueden cambiar con el mercado.
+            Precios de referencia en EUR, en condición Near Mint de Cardmarket. Pueden cambiar con el mercado.
           </p>
         </section>
 
