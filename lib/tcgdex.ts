@@ -23,6 +23,31 @@ export type SetSort =
   | "name-desc"
   | "progress";
 
+const getCachedPocketSetIds = unstable_cache(
+  async (): Promise<string[]> => {
+    const response = await fetch("https://api.tcgdex.net/v2/en/series/tcgp", {
+      next: { revalidate: 86400 },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error obteniendo los sets de TCG Pocket: ${response.status}`);
+    }
+
+    const series = (await response.json()) as {
+      sets?: Array<{ id: string }>;
+    };
+
+    return (series.sets ?? []).map((set) => set.id);
+  },
+  ["tcgdex-pocket-set-ids-v1"],
+  { revalidate: 86400, tags: ["tcgdex-sets"] }
+);
+
+async function isPocketSet(setId: string): Promise<boolean> {
+  const pocketSetIds = await getCachedPocketSetIds();
+  return pocketSetIds.includes(setId);
+}
+
 export async function getAllSets(
   sort: SetSort = "recent"
 ): Promise<TCGdexSetBrief[]> {
@@ -53,7 +78,10 @@ export async function getAllSets(
     );
   }
 
-  return response.json();
+  const sets = (await response.json()) as TCGdexSetBrief[];
+  const pocketSetIds = new Set(await getCachedPocketSetIds());
+
+  return sets.filter((set) => !pocketSetIds.has(set.id));
 }
 
 const validTcgDexId = /^[A-Za-z0-9_.-]{1,100}$/;
@@ -191,7 +219,16 @@ export async function getSet(setId: string) {
     return null;
   }
 
-  return getCachedSet(setId);
+  if (await isPocketSet(setId)) {
+    return null;
+  }
+
+  const set = await getCachedSet(setId);
+  if (!set || (set.cards ?? []).some((card) => card.image?.includes("/tcgp/"))) {
+    return null;
+  }
+
+  return set;
 }
 
 export async function getCard(cardId: string) {
@@ -261,6 +298,7 @@ export async function searchCards(
   const cards = new Map<string, TCGdexCardBrief>();
 
   for (const card of [...nameCards, ...localIdCards]) {
+    if (card.image?.includes("/tcgp/")) continue;
     cards.set(card.id, card);
   }
 
