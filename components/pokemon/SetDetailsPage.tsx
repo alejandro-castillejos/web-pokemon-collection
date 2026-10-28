@@ -100,6 +100,9 @@ export default function SetDetailsPage({
                 Revisa todas las cartas de la expansión y lleva el control de
                 tu colección.
               </p>
+              <p className="mt-3 max-w-2xl text-xs leading-5 text-zinc-400">
+                La información de esta expansión puede estar incompleta. Podrían faltar cartas, imágenes o datos, ya que la disponibilidad depende de las fuentes externas.
+              </p>
             </div>
 
             <GlassPanel className="rounded-[24px] p-5 lg:min-w-[260px]">
