@@ -51,7 +51,9 @@ function parseChaseSection(
 
   // TCG Vault places the chase ranking on the regular set page. The heading
   // wording and count vary, so don't require a fixed "15 most valuable" phrase.
-  const heading = /(?:most valuable cards in|chase cards)/i.exec(text);
+  const heading =
+    /chase cards/i.exec(text) ??
+    /most valuable cards in/i.exec(text);
   if (!heading) return [];
 
   const sectionStart = heading.index;
