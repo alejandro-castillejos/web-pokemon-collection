@@ -92,9 +92,7 @@ function parseChaseSection(
     });
   }
 
-  return [...byNumber.values()]
-    .sort((a, b) => a.rank - b.rank)
-    .slice(0, 10);
+  return [...byNumber.values()].slice(0, 10);
 }
 
 export async function getChasePrices(
