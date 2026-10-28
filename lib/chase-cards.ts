@@ -68,7 +68,8 @@ function parseChaseSection(
 
     const position = match.index ?? 0;
     const before = section.slice(Math.max(0, position - 100), position);
-    const rankMatches = [...before.matchAll(/#\s*(\d{1,2})\b/g)];
+    const nearby = section.slice(Math.max(0, position - 100), Math.min(section.length, position + 180));
+    const rankMatches = [...nearby.matchAll(/#\s*(\d{1,2})\b/g)];
     const rank = rankMatches.length
       ? Number(rankMatches[rankMatches.length - 1][1])
       : index + 1;
@@ -106,7 +107,7 @@ export async function getChasePrices(
     base2: "base-set-2",
   };
   const slug = (setId && knownSlugs[setId]) || slugifySetName(setName);
-  const sourceUrl = \`https://tcgvault.io/es/pokemon/expansiones/\${slug}/\`;
+  const sourceUrl = `https://tcgvault.io/es/pokemon/expansiones/${slug}/`;
 
   try {
     const response = await fetch(sourceUrl, {
