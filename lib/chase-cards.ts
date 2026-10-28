@@ -73,7 +73,7 @@ function parseChaseSection(
 
     // The price follows the card number and rarity in TCG Vault's rendered
     // text. Keep the search window short to avoid capturing the next card.
-    const afterNumber = section.slice(numberPattern.lastIndex, numberPattern.lastIndex + 100);
+    const afterNumber = section.slice(numberPattern.lastIndex, numberPattern.lastIndex + 300);
     const priceMatch = afterNumber.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
     if (!priceMatch) continue;
 
@@ -95,11 +95,17 @@ function parseChaseSection(
 
 export async function getChasePrices(
   setName: string,
-  localIds: string[]
+  localIds: string[],
+  setId?: string
 ): Promise<{ cards: ChasePrice[]; sourceUrl: string }> {
   // TCG Vault's chase list is embedded on the standard set page; there is no
-  // separate /chase-cards/ page for the sets checked.
-  const sourceUrl = `https://tcgvault.io/pokemon/sets/${slugifySetName(setName)}/`;
+  // separate /chase-cards/ page. Some legacy set names need explicit slugs.
+  const knownSlugs: Record<string, string> = {
+    base1: "base-set",
+    base2: "base-set-2",
+  };
+  const slug = (setId && knownSlugs[setId]) || slugifySetName(setName);
+  const sourceUrl = `https://tcgvault.io/pokemon/sets/${slug}/`;
 
   try {
     const response = await fetch(sourceUrl, {
