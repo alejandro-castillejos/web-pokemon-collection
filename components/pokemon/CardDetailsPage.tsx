@@ -174,7 +174,7 @@ export default async function CardDetailsPage({
                 />
               </div>
 
-              <CardPricingPanel pricing={card.pricing} />
+              <CardPricingPanel searchQuery={`${card.name} ${set.name} ${card.localId}`} />
             </div>
           </div>
         </section>
