@@ -50,10 +50,8 @@ export async function getChasePrices(
     const headingIndex = headingMatch?.index ?? -1;
     if (headingIndex < 0) return { cards: [], sourceUrl };
 
-    const afterHeading = html.slice(headingIndex);
-    const nextHeading = afterHeading.search(/<h2\b/i);
-    const section = nextHeading > 0 ? afterHeading.slice(0, nextHeading) : afterHeading;
-    const text = stripHtml(section);
+    // Scan the whole page: the chase list may be split by nested headings in the HTML.
+    const text = stripHtml(html);
     const wanted = new Set(localIds.map((id) => id.replace(/^0+/, "")));
     const cards: ChasePrice[] = [];
     const numberPattern = /\b(\d{1,3})\s*\/\s*\d{2,3}\b/g;
