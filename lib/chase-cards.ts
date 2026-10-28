@@ -56,9 +56,14 @@ function parseChaseSection(
     /most valuable cards in/i.exec(text);
   if (!heading) return [];
 
-  const sectionStart = heading.index;
-  const remaining = text.slice(sectionStart);
-  const nextSection = remaining.search(/\bcard list\b/i);
+  const fromHeading = text.slice(heading.index);
+  // Skip navigation links between the section heading and the actual ranked
+  // list. TCG Vault sometimes places a "Card list" anchor there.
+  const rankingHeading = /the\s+\d+\s+most valuable cards by near mint price/i.exec(fromHeading);
+  const remaining = rankingHeading
+    ? fromHeading.slice(rankingHeading.index)
+    : fromHeading;
+  const nextSection = remaining.search(/\ball\s+\d+\s+cards\b/i);
   const section = nextSection >= 0
     ? remaining.slice(0, nextSection)
     : remaining.slice(0, 12000);
