@@ -1,6 +1,6 @@
 import Link from "next/link";
 import GlassPanel from "@/components/ui/GlassPanel";
-import PokemonCard from "@/components/pokemon/PokemonCard";
+import ChaseCardsGrid from "@/components/pokemon/ChaseCardsGrid";
 import { getSet } from "@/lib/tcgdex";
 import { getChasePrices } from "@/lib/chase-cards";
 import { createClient } from "@/lib/supabase/server";
@@ -82,28 +82,28 @@ export default async function ChasePage({ params }: ChasePageProps) {
             Las cartas más valiosas de {set.name}, ordenadas por precio de mercado.
           </p>
           <p className="mt-3 text-xs text-zinc-400">
-            Precios de referencia en EUR, en condición Near Mint de Cardmarket. Pueden cambiar con el mercado.
+            Precios de referencia en condición Near Mint de Cardmarket. Las conversiones a USD y MXN son aproximadas y usan tipos de cambio de referencia.
+          </p>
+          <p className="mt-2 max-w-3xl text-xs leading-5 text-zinc-400">
+            La información puede estar incompleta: podrían faltar cartas, imágenes o datos, o la fuente externa podría no incluir todas las cartas de la expansión.
           </p>
         </section>
 
         {chaseCards.length > 0 ? (
-          <section className="grid grid-cols-2 gap-4 pb-16 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {chaseCards.map(({ card, price }, index) => (
-              <PokemonCard
-                key={card.id}
-                setId={set.id}
-                cardId={card.id}
-                number={`${card.localId}/${set.cardCount.official}`}
-                name={card.name}
-                image={card.image}
-                priority={index < 4}
-                marketPrice={`#${index + 1} · €${price.priceEur.toFixed(2)} EUR`}
-                setName={set.name}
-                owned={ownedIds.has(card.id)}
-                wishlist={wishlistIds.has(card.id)}
-              />
-            ))}
-          </section>
+          <ChaseCardsGrid
+            setId={set.id}
+            setName={set.name}
+            officialCount={set.cardCount.official}
+            cards={chaseCards.map(({ card, price }) => ({
+              id: card.id,
+              localId: String(card.localId),
+              name: card.name,
+              image: card.image,
+              priceEur: price.priceEur,
+              owned: ownedIds.has(card.id),
+              wishlist: wishlistIds.has(card.id),
+            }))}
+          />
         ) : (
           <GlassPanel strong className="p-8 text-center sm:p-12">
             <h2 className="text-xl font-semibold text-zinc-900">
