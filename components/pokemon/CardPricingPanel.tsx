@@ -4,6 +4,7 @@ import GlassPanel from "@/components/ui/GlassPanel";
 
 interface CardPricingPanelProps {
   searchQuery: string;
+  cardmarketSearchQuery: string;
 }
 
 const priceSources = [
@@ -69,7 +70,7 @@ function SourceIcon({ icon }: { icon: string }) {
   );
 }
 
-export default function CardPricingPanel({ searchQuery }: CardPricingPanelProps) {
+export default function CardPricingPanel({ searchQuery, cardmarketSearchQuery }: CardPricingPanelProps) {
   return (
     <GlassPanel strong className="mt-6 rounded-[24px] p-4 sm:p-5">
       <h2 className="text-lg font-semibold text-zinc-900">
@@ -83,11 +84,11 @@ export default function CardPricingPanel({ searchQuery }: CardPricingPanelProps)
         {priceSources.map((source) => (
           <a
             key={source.name}
-            href={source.href(searchQuery)}
+            href={source.href(source.name === "Cardmarket" ? cardmarketSearchQuery : searchQuery)}
             target="_blank"
             rel="noopener noreferrer"
             className={`group flex min-w-0 items-center gap-3 rounded-2xl border px-3 py-3 transition duration-200 hover:-translate-y-0.5 hover:shadow-sm ${source.className}`}
-            aria-label={`Buscar ${searchQuery} en ${source.name}`}
+            aria-label={`Buscar ${source.name === "Cardmarket" ? cardmarketSearchQuery : searchQuery} en ${source.name}`}
           >
             <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 shadow-sm ${source.iconColor}`}>
               <SourceIcon icon={source.icon} />
