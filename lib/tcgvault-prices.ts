@@ -88,7 +88,7 @@ function parsePriceRows(html: string): Array<{ name: string; number: string; amo
     const amount = Number(priceMatches[priceMatches.length - 1][1].replace(/,/g, ""));
     if (!Number.isFinite(amount)) continue;
 
-    const nameFromImage = rowHtml.match(/alt=["'][^"']*?\s[–-]\s([^"'#]+?)\s#\d/i);
+    const nameFromImage = rowHtml.match(/alt=["'][^"']*?:\s*([^–-]+?)\s*[–-]/i);
     const nameFromLink = rowHtml.match(/<a\b[^>]*>([\s\S]*?)<\/a>/i);
     const name = stripHtml(nameFromImage?.[1] ?? (nameFromLink ? nameFromLink[1] : ""));
     if (!name) continue;
