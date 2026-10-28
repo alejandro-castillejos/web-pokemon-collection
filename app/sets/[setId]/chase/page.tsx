@@ -27,7 +27,8 @@ export default async function ChasePage({ params }: ChasePageProps) {
 
   const source = await getChasePrices(
     set.name,
-    (set.cards ?? []).map((card) => String(card.localId))
+    (set.cards ?? []).map((card) => String(card.localId)),
+    set.id
   );
   const priceByNumber = new Map(
     source.cards.map((card) => [card.cardNumber, card])
