@@ -5,11 +5,6 @@ import GlassPanel from "@/components/ui/GlassPanel";
 interface CardPricingPanelProps {
   searchQuery: string;
   cardmarketSearchQuery: string;
-  marketPrice?: {
-    amount: number;
-    currency: "USD";
-    sourceUrl: string;
-  } | null;
 }
 
 const priceSources = [
@@ -75,7 +70,7 @@ function SourceIcon({ icon }: { icon: string }) {
   );
 }
 
-export default function CardPricingPanel({ searchQuery, cardmarketSearchQuery, marketPrice }: CardPricingPanelProps) {
+export default function CardPricingPanel({ searchQuery, cardmarketSearchQuery }: CardPricingPanelProps) {
   return (
     <GlassPanel strong className="mt-6 rounded-[24px] p-4 sm:p-5">
       <h2 className="text-lg font-semibold text-zinc-900">
@@ -84,37 +79,6 @@ export default function CardPricingPanel({ searchQuery, cardmarketSearchQuery, m
       <p className="mt-1 text-sm text-zinc-500">
         Consulta esta carta en una tienda o mercado externo.
       </p>
-
-      <div className="mt-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 p-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-emerald-800">
-          Precio de mercado estimado
-        </p>
-        {marketPrice ? (
-          <>
-            <p className="mt-1 text-2xl font-bold tabular-nums text-zinc-900">
-              {new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: marketPrice.currency,
-              }).format(marketPrice.amount)}
-            </p>
-            <p className="mt-1 text-xs text-zinc-600">
-              Precio Near Mint de TCGplayer, obtenido de TCG Vault. Puede variar según la condición y la versión de la carta.
-            </p>
-            <a
-              href={marketPrice.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-flex text-xs font-semibold text-emerald-800 underline underline-offset-2 hover:text-emerald-950"
-            >
-              Ver precio en la fuente
-            </a>
-          </>
-        ) : (
-          <p className="mt-1 text-sm text-zinc-600">
-            No se encontró un precio coincidente para esta carta. Puedes consultar los mercados externos.
-          </p>
-        )}
-      </div>
 
       <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
         {priceSources.map((source) => (
