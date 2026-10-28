@@ -134,14 +134,6 @@ export default function SetDetailsPage({
                 {set.cardCount.total}
               </p>
 
-              {!isCollection && !isWishlist && (
-                <Link
-                  href={`/sets/${set.id}/chase`}
-                  className="mt-4 inline-flex items-center justify-center rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
-                >
-                  Chase cards
-                </Link>
-              )}
             </GlassPanel>
           </div>
         </section>
@@ -177,6 +169,12 @@ export default function SetDetailsPage({
                   </Link>
                 );
               })}
+              <Link
+                href={`/sets/${set.id}/chase`}
+                className="rounded-full border border-transparent px-5 py-3 text-sm font-medium text-zinc-500 transition hover:bg-white/60 hover:text-zinc-900"
+              >
+                Chase cards
+              </Link>
             </div>
           </section>
         )}
