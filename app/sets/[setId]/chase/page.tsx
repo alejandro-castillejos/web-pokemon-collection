@@ -97,7 +97,7 @@ export default async function ChasePage({ params }: ChasePageProps) {
                 name={card.name}
                 image={card.image}
                 priority={index < 4}
-                marketPrice={`#${price.rank} · €${price.priceEur.toFixed(2)} EUR`}
+                marketPrice={`#${index + 1} · €${price.priceEur.toFixed(2)} EUR`}
                 setName={set.name}
                 owned={ownedIds.has(card.id)}
                 wishlist={wishlistIds.has(card.id)}
