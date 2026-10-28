@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import CollectionButton from "@/components/pokemon/CollectionButton";
 import WishlistButton from "@/components/pokemon/WishlistButton";
 import CardPricingPanel from "@/components/pokemon/CardPricingPanel";
-import { getTcgvaultCardPrice } from "@/lib/tcgvault-prices";
 import { getCard, getSet } from "@/lib/tcgdex";
 
 type SetData = NonNullable<Awaited<ReturnType<typeof getSet>>>;
@@ -94,12 +93,6 @@ export default async function CardDetailsPage({
     );
   }
 
-  const marketPrice = await getTcgvaultCardPrice(
-    set.name,
-    card.name,
-    card.localId
-  );
-
   return (
     <main className="relative min-h-screen overflow-hidden text-[#111111]">
       <div className="soft-glow left-[-140px] top-[160px] h-72 w-72 bg-blue-300/20" />
@@ -184,7 +177,6 @@ export default async function CardDetailsPage({
               <CardPricingPanel
                 searchQuery={`${card.name} ${set.name} ${card.localId}`}
                 cardmarketSearchQuery={`${card.name} ${card.localId}`}
-                marketPrice={marketPrice}
               />
             </div>
           </div>
