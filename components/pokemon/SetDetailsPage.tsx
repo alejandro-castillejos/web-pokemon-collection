@@ -53,6 +53,8 @@ export default function SetDetailsPage({
 
   const owned = ownedCardIds.size;
   const displayedCount = isWishlist ? wishlistCards.length : owned;
+  const chaseCardsUrl = `https://tcgcompanion.app/sets/${set.name.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}/#chase-cards`;
+
   const progress =
     set.cardCount.total > 0
       ? Math.round((displayedCount / set.cardCount.total) * 100)
@@ -132,6 +134,23 @@ export default function SetDetailsPage({
                 {isWishlist ? "en wishlist de" : "de"}{" "}
                 {set.cardCount.total}
               </p>
+
+              {!isCollection && !isWishlist && (
+                <a
+                  href={chaseCardsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm font-semibold text-amber-900 transition hover:-translate-y-0.5 hover:border-amber-300 hover:bg-amber-100 hover:shadow-sm"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+                    <path d="m12 3 2.6 5.3 5.9.9-4.25 4.15 1 5.85L12 16.4l-5.25 2.8 1-5.85L3.5 9.2l5.9-.9L12 3Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Ver Chase Cards
+                  <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+                    <path d="M7 4H4.75A1.75 1.75 0 0 0 3 5.75v9.5A1.75 1.75 0 0 0 4.75 17h9.5A1.75 1.75 0 0 0 16 15.25V13M11 3h6v6M17 3l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </a>
+              )}
             </GlassPanel>
           </div>
         </section>
