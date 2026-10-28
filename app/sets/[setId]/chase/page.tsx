@@ -81,7 +81,7 @@ export default async function ChasePage({ params }: ChasePageProps) {
                 name={card.name}
                 image={card.image}
                 priority={index < 4}
-                marketPrice={`#${price.rank} · $${price.priceUsd.toFixed(2)} USD`}
+                marketPrice={`#${price.rank} · €${price.priceEur.toFixed(2)} EUR`}
                 setName={set.name}
               />
             ))}
