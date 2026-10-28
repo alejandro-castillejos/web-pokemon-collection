@@ -95,7 +95,7 @@ export default function CardPricingPanel({ searchQuery, cardmarketSearchQuery, m
               {new Intl.NumberFormat("en-US", {
                 style: "currency",
                 currency: marketPrice.currency,
-              }).format(marketPrice.amount)} USD
+              }).format(marketPrice.amount)}
             </p>
             <p className="mt-1 text-xs text-zinc-600">
               Precio Near Mint de TCGplayer, obtenido de TCG Vault. Puede variar según la condición y la versión de la carta.
