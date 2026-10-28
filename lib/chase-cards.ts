@@ -3,7 +3,7 @@ import "server-only";
 export interface ChasePrice {
   cardNumber: string;
   cardName: string;
-  priceUsd: number;
+  priceEur: number;
   rank: number;
   sourceUrl: string;
 }
@@ -11,7 +11,7 @@ export interface ChasePrice {
 function slugifySetName(name: string): string {
   return name
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\\u0300-\\u036f]/g, "")
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
@@ -20,26 +20,26 @@ function slugifySetName(name: string): string {
 
 function stripHtml(value: string): string {
   return value
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
+    .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
+    .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
+    .replace(/<svg[\\s\\S]*?<\\/svg>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .replace(/&#0*39;|&apos;/gi, "'")
-    .replace(/&#x([\da-f]+);/gi, (_, hex: string) =>
+    .replace(/&#x([\\da-f]+);/gi, (_, hex: string) =>
       String.fromCodePoint(Number.parseInt(hex, 16))
     )
-    .replace(/&#(\d+);/g, (_, decimal: string) =>
+    .replace(/&#(\\d+);/g, (_, decimal: string) =>
       String.fromCodePoint(Number.parseInt(decimal, 10))
     )
-    .replace(/\s+/g, " ")
+    .replace(/\\s+/g, " ")
     .trim();
 }
 
 function normalizeCardNumber(value: string): string {
-  return value.replace(/[a-z]+$/i, "").replace(/^0+/, "") || "0";
+  return value.replace(/^0+/, "") || "0";
 }
 
 function parseChaseSection(
@@ -48,55 +48,53 @@ function parseChaseSection(
   localIds: string[]
 ): ChasePrice[] {
   const text = stripHtml(html);
-  const normalizedWanted = new Set(localIds.map(normalizeCardNumber));
-
-  // TCG Vault places the chase ranking on the regular set page. The heading
-  // wording and count vary, so don't require a fixed "15 most valuable" phrase.
-  const heading =
-    /chase cards/i.exec(text) ??
-    /most valuable cards in/i.exec(text);
+  const heading = /cartas chase de/i.exec(text) ?? /las cartas más valiosas de/i.exec(text);
   if (!heading) return [];
 
   const fromHeading = text.slice(heading.index);
-  // Skip navigation links between the section heading and the actual ranked
-  // list. TCG Vault sometimes places a "Card list" anchor there.
-  const rankingHeading = /the\s+\d+\s+most valuable cards by near mint price/i.exec(fromHeading);
-  const remaining = rankingHeading
-    ? fromHeading.slice(rankingHeading.index)
-    : fromHeading;
-  const nextSection = remaining.search(/\ball\s+\d+\s+cards\b/i);
-  const section = nextSection >= 0
-    ? remaining.slice(0, nextSection)
-    : remaining.slice(0, 12000);
+  const listHeading = /lista de cartas de/i.exec(fromHeading);
+  const section = listHeading
+    ? fromHeading.slice(0, listHeading.index)
+    : fromHeading.slice(0, 14000);
 
-  const numberPattern = /\b(\d{1,4}[a-z]?)\s*\/\s*\d{1,4}\b/gi;
+  const wanted = new Set(localIds.map(normalizeCardNumber));
+  const numberPattern = /\\b(\\d{1,4})\\s*\\/\\s*\\d{1,4}\\b/g;
+  const matches = [...section.matchAll(numberPattern)];
   const found: ChasePrice[] = [];
-  let match: RegExpExecArray | null;
+  const seen = new Set<string>();
 
-  while ((match = numberPattern.exec(section)) !== null) {
+  matches.forEach((match, index) => {
     const cardNumber = normalizeCardNumber(match[1]);
-    if (!normalizedWanted.has(cardNumber)) continue;
+    if (!wanted.has(cardNumber) || seen.has(cardNumber)) return;
 
-    // The price follows the card number and rarity in TCG Vault's rendered
-    // text. Keep the search window short to avoid capturing the next card.
-    const afterNumber = section.slice(numberPattern.lastIndex, numberPattern.lastIndex + 300);
-    const priceMatch = afterNumber.match(/\$\s*([\d,]+(?:\.\d{1,2})?)/);
-    if (!priceMatch) continue;
+    const entryStart = Math.max(0, match.index ?? 0 - 180);
+    const entryEnd = matches[index + 1]?.index ?? Math.min(section.length, (match.index ?? 0) + 260);
+    const entry = section.slice(entryStart, entryEnd);
+    const priceMatch = entry.match(/([0-9]+(?:[.,][0-9]{2})?)\\s*€/);
+    if (!priceMatch) return;
 
-    const priceUsd = Number(priceMatch[1].replace(/,/g, ""));
-    if (!Number.isFinite(priceUsd) || priceUsd < 0) continue;
+    const priceEur = Number(priceMatch[1].replace(/\\./g, "").replace(",", "."));
+    if (!Number.isFinite(priceEur) || priceEur <= 0) return;
 
-    if (!found.some((card) => card.cardNumber === cardNumber)) {
-      found.push({
-        cardNumber,
-        priceUsd,
-        rank: found.length + 1,
-        sourceUrl,
-      });
-    }
-  }
+    const cardName = entry
+      .replace(/.*?\\b(?:\\d{1,4})\\s*\\/\\s*\\d{1,4}\\b/, "")
+      .replace(/[0-9]+(?:[.,][0-9]{2})?\\s*€.*/, "")
+      .replace(/Special Illustration Rare|Futuristic Rare|Illustration Rare|Ultra Rare|Secret Rare|Holo Rare|Double Rare|Common|Uncommon/gi, "")
+      .replace(/[#·|]/g, " ")
+      .replace(/\\s+/g, " ")
+      .trim();
 
-  return found.sort((a, b) => a.rank - b.rank).slice(0, 15);
+    found.push({
+      cardNumber,
+      cardName,
+      priceEur,
+      rank: matches.indexOf(match) + 1,
+      sourceUrl,
+    });
+    seen.add(cardNumber);
+  });
+
+  return found.sort((a, b) => a.rank - b.rank).slice(0, 10);
 }
 
 export async function getChasePrices(
@@ -104,14 +102,14 @@ export async function getChasePrices(
   localIds: string[],
   setId?: string
 ): Promise<{ cards: ChasePrice[]; sourceUrl: string }> {
-  // TCG Vault's chase list is embedded on the standard set page; there is no
-  // separate /chase-cards/ page. Some legacy set names need explicit slugs.
   const knownSlugs: Record<string, string> = {
     base1: "base-set",
     base2: "base-set-2",
   };
   const slug = (setId && knownSlugs[setId]) || slugifySetName(setName);
-  const sourceUrl = `https://tcgvault.io/pokemon/sets/${slug}/chase-cards/`;
+  // Use TCG Vault's Spanish page: its chase ranking and prices are in euros
+  // from Cardmarket, matching the values displayed on the reference page.
+  const sourceUrl = `https://tcgvault.io/es/pokemon/expansiones/${slug}/`;
 
   try {
     const response = await fetch(sourceUrl, {
@@ -125,9 +123,7 @@ export async function getChasePrices(
     if (!response.ok) return { cards: [], sourceUrl };
 
     const html = await response.text();
-    const cards = parseChaseSection(html, sourceUrl, localIds);
-
-    return { cards, sourceUrl };
+    return { cards: parseChaseSection(html, sourceUrl, localIds), sourceUrl };
   } catch {
     return { cards: [], sourceUrl };
   }
