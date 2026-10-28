@@ -77,7 +77,7 @@ export default async function ChasePage({ params }: ChasePageProps) {
                 key={card.id}
                 setId={set.id}
                 cardId={card.id}
-                number={String(card.localId)}
+                number={`${card.localId}/${set.cardCount.official}`}
                 name={card.name}
                 image={card.image}
                 priority={index < 4}
