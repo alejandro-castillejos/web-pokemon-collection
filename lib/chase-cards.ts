@@ -11,7 +11,7 @@ export interface ChasePrice {
 function slugifySetName(name: string): string {
   return name
     .normalize("NFD")
-    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, "-")
@@ -20,21 +20,21 @@ function slugifySetName(name: string): string {
 
 function stripHtml(value: string): string {
   return value
-    .replace(/<script[\\s\\S]*?<\\/script>/gi, " ")
-    .replace(/<style[\\s\\S]*?<\\/style>/gi, " ")
-    .replace(/<svg[\\s\\S]*?<\\/svg>/gi, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/&nbsp;|&#160;/gi, " ")
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, '"')
     .replace(/&#0*39;|&apos;/gi, "'")
-    .replace(/&#x([\\da-f]+);/gi, (_, hex: string) =>
+    .replace(/&#x([\da-f]+);/gi, (_, hex: string) =>
       String.fromCodePoint(Number.parseInt(hex, 16))
     )
-    .replace(/&#(\\d+);/g, (_, decimal: string) =>
+    .replace(/&#(\d+);/g, (_, decimal: string) =>
       String.fromCodePoint(Number.parseInt(decimal, 10))
     )
-    .replace(/\\s+/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
@@ -48,53 +48,52 @@ function parseChaseSection(
   localIds: string[]
 ): ChasePrice[] {
   const text = stripHtml(html);
-  const heading = /cartas chase de/i.exec(text) ?? /las cartas más valiosas de/i.exec(text);
+  const heading = /cartas chase de/i.exec(text);
   if (!heading) return [];
 
   const fromHeading = text.slice(heading.index);
   const listHeading = /lista de cartas de/i.exec(fromHeading);
   const section = listHeading
     ? fromHeading.slice(0, listHeading.index)
-    : fromHeading.slice(0, 14000);
+    : fromHeading.slice(0, 16000);
 
   const wanted = new Set(localIds.map(normalizeCardNumber));
-  const numberPattern = /\\b(\\d{1,4})\\s*\\/\\s*\\d{1,4}\\b/g;
+  const numberPattern = /\b(\d{1,4})\s*\/\s*\d{1,4}\b/g;
   const matches = [...section.matchAll(numberPattern)];
-  const found: ChasePrice[] = [];
-  const seen = new Set<string>();
+  const byNumber = new Map<string, ChasePrice>();
 
-  matches.forEach((match, index) => {
+  for (const [index, match] of matches.entries()) {
     const cardNumber = normalizeCardNumber(match[1]);
-    if (!wanted.has(cardNumber) || seen.has(cardNumber)) return;
+    if (!wanted.has(cardNumber) || byNumber.has(cardNumber)) continue;
 
-    const entryStart = Math.max(0, match.index ?? 0 - 180);
-    const entryEnd = matches[index + 1]?.index ?? Math.min(section.length, (match.index ?? 0) + 260);
-    const entry = section.slice(entryStart, entryEnd);
-    const priceMatch = entry.match(/([0-9]+(?:[.,][0-9]{2})?)\\s*€/);
-    if (!priceMatch) return;
+    const position = match.index ?? 0;
+    const before = section.slice(Math.max(0, position - 100), position);
+    const rankMatches = [...before.matchAll(/#\s*(\d{1,2})\b/g)];
+    const rank = rankMatches.length
+      ? Number(rankMatches[rankMatches.length - 1][1])
+      : index + 1;
 
-    const priceEur = Number(priceMatch[1].replace(/\\./g, "").replace(",", "."));
-    if (!Number.isFinite(priceEur) || priceEur <= 0) return;
+    const nextNumberPosition = matches[index + 1]?.index ?? section.length;
+    const after = section.slice(position, Math.min(nextNumberPosition + 100, position + 500));
+    const priceMatch = after.match(/(\d[\d.]*,\d{2})\s*€/);
+    if (!priceMatch) continue;
 
-    const cardName = entry
-      .replace(/.*?\\b(?:\\d{1,4})\\s*\\/\\s*\\d{1,4}\\b/, "")
-      .replace(/[0-9]+(?:[.,][0-9]{2})?\\s*€.*/, "")
-      .replace(/Special Illustration Rare|Futuristic Rare|Illustration Rare|Ultra Rare|Secret Rare|Holo Rare|Double Rare|Common|Uncommon/gi, "")
-      .replace(/[#·|]/g, " ")
-      .replace(/\\s+/g, " ")
-      .trim();
+    const priceEur = Number(priceMatch[1].replace(/\./g, "").replace(",", "."));
+    if (!Number.isFinite(priceEur) || priceEur <= 0) continue;
 
-    found.push({
+    const cardNameMatch = before.match(/([A-ZÀ-ÿ][\wÀ-ÿ' -]+(?:ex)?)[\s–-]*n[.º°]?\s*$/i);
+    byNumber.set(cardNumber, {
       cardNumber,
-      cardName,
+      cardName: cardNameMatch?.[1]?.trim() ?? "",
       priceEur,
-      rank: matches.indexOf(match) + 1,
+      rank,
       sourceUrl,
     });
-    seen.add(cardNumber);
-  });
+  }
 
-  return found.sort((a, b) => a.rank - b.rank).slice(0, 10);
+  return [...byNumber.values()]
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, 10);
 }
 
 export async function getChasePrices(
@@ -107,9 +106,7 @@ export async function getChasePrices(
     base2: "base-set-2",
   };
   const slug = (setId && knownSlugs[setId]) || slugifySetName(setName);
-  // Use TCG Vault's Spanish page: its chase ranking and prices are in euros
-  // from Cardmarket, matching the values displayed on the reference page.
-  const sourceUrl = `https://tcgvault.io/es/pokemon/expansiones/${slug}/`;
+  const sourceUrl = \`https://tcgvault.io/es/pokemon/expansiones/\${slug}/\`;
 
   try {
     const response = await fetch(sourceUrl, {
