@@ -99,6 +99,8 @@ export default async function ChasePage({ params }: ChasePageProps) {
                 priority={index < 4}
                 marketPrice={`#${price.rank} · €${price.priceEur.toFixed(2)} EUR`}
                 setName={set.name}
+                owned={ownedIds.has(card.id)}
+                wishlist={wishlistIds.has(card.id)}
               />
             ))}
           </section>
