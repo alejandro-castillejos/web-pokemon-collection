@@ -13,6 +13,7 @@ interface PokemonCardProps {
   owned?: boolean;
   wishlist?: boolean;
   setName?: string;
+  marketPrice?: string;
   basePath?: "/sets" | "/collection" | "/wishlist";
 }
 
@@ -26,6 +27,7 @@ export default function PokemonCard({
   owned = false,
   wishlist = false,
   setName,
+  marketPrice,
   basePath = "/sets",
 }: PokemonCardProps) {
   return (
@@ -50,6 +52,11 @@ export default function PokemonCard({
               {setName && (
                 <p className="mt-1 truncate text-[11px] text-zinc-500">
                   {setName}
+                </p>
+              )}
+              {marketPrice && (
+                <p className="mt-2 text-sm font-semibold text-emerald-700">
+                  {marketPrice}
                 </p>
               )}
             </div>
