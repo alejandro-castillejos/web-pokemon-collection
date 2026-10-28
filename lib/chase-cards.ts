@@ -38,6 +38,58 @@ function stripHtml(value: string): string {
     .trim();
 }
 
+function normalizeSetName(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\\u0300-\\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+async function resolveSetSlug(setName: string, setId?: string): Promise<string | null> {
+  const knownNames: Record<string, string[]> = {
+    sv3pt5: ["Scarlet & Violet 151", "151"],
+    base1: ["Base Set"],
+    base2: ["Base Set 2"],
+  };
+  const candidates = [setName, ...(setId ? knownNames[setId] ?? [] : [])]
+    .map(normalizeSetName)
+    .filter(Boolean);
+
+  const response = await fetch("https://tcgvault.io/es/pokemon/expansiones/", {
+    headers: {
+      "User-Agent": "PokemonTCGCollection/0.1 (set slug lookup)",
+      Accept: "text/html,application/xhtml+xml",
+    },
+    next: { revalidate: 86400 },
+  });
+  if (!response.ok) return null;
+
+  const html = await response.text();
+  const links = [...html.matchAll(/<a\\b[^>]*href=["']([^"']*\\/es\\/pokemon\\/expansiones\\/([^/"']+)\\/?)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
+  const entries = links.map((match) => ({
+    slug: match[2],
+    name: normalizeSetName(stripHtml(match[3])),
+  }));
+
+  for (const candidate of candidates) {
+    const exact = entries.find((entry) => entry.name === candidate);
+    if (exact) return exact.slug;
+  }
+
+  // TCGdex sometimes uses a shorter name than TCG Vault (e.g. "151").
+  // Accept a unique partial match only; never guess when multiple sets match.
+  for (const candidate of candidates) {
+    const partial = entries.filter((entry) =>
+      entry.name.startsWith(candidate + " ") || candidate.startsWith(entry.name + " ")
+    );
+    if (partial.length === 1) return partial[0].slug;
+  }
+  return null;
+}
+
 function normalizeCardNumber(value: string): string {
   return value.replace(/^0+/, "") || "0";
 }
@@ -98,12 +150,15 @@ export async function getChasePrices(
   localIds: string[],
   setId?: string
 ): Promise<{ cards: ChasePrice[]; sourceUrl: string }> {
-  const knownSlugs: Record<string, string> = {
-    base1: "base-set",
-    base2: "base-set-2",
-  };
-  const slug = (setId && knownSlugs[setId]) || slugifySetName(setName);
-  const sourceUrl = `https://tcgvault.io/es/pokemon/expansiones/${slug}/`;
+  let slug: string | null = null;
+  try {
+    slug = await resolveSetSlug(setName, setId);
+  } catch {
+    slug = null;
+  }
+  // Fall back to the generated slug only if the catalogue lookup fails.
+  const resolvedSlug = slug || (setId === "sv3pt5" ? "scarlet-and-violet-151" : slugifySetName(setName));
+  const sourceUrl = `https://tcgvault.io/es/pokemon/expansiones/${resolvedSlug}/`;
 
   try {
     const response = await fetch(sourceUrl, {
