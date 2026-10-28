@@ -68,11 +68,9 @@ function parseChaseSection(
 
     const position = match.index ?? 0;
     const before = section.slice(Math.max(0, position - 100), position);
-    const nearby = section.slice(Math.max(0, position - 100), Math.min(section.length, position + 180));
-    const rankMatches = [...nearby.matchAll(/#\s*(\d{1,2})\b/g)];
-    const rank = rankMatches.length
-      ? Number(rankMatches[rankMatches.length - 1][1])
-      : index + 1;
+    // The source list is already ordered by market value. Assign a unique,
+    // consecutive rank instead of reading nearby badges that can duplicate.
+    const rank = byNumber.size + 1;
 
     const nextNumberPosition = matches[index + 1]?.index ?? section.length;
     const after = section.slice(position, Math.min(nextNumberPosition + 100, position + 500));
