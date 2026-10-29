@@ -41,7 +41,7 @@ function stripHtml(value: string): string {
 function normalizeSetName(value: string): string {
   return value
     .normalize("NFD")
-    .replace(/[\\u0300-\\u036f]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/[^a-z0-9]+/g, " ")
@@ -53,8 +53,55 @@ async function resolveSetSlug(setName: string, setId?: string): Promise<string |
     sv3pt5: ["Scarlet & Violet 151", "151"],
     base1: ["Base Set"],
     base2: ["Base Set 2"],
+    swsh12pt5: ["Crown Zenith"],
+    swsh12: ["Silver Tempest"],
+    swsh11: ["Lost Origin"],
+    swsh10: ["Astral Radiance"],
+    swsh9: ["Brilliant Stars"],
+    swsh8: ["Fusion Strike"],
+    swsh7: ["Evolving Skies"],
+    swsh6: ["Chilling Reign"],
+    swsh5: ["Battle Styles"],
+    swsh4: ["Vivid Voltage"],
+    swsh3: ["Darkness Ablaze"],
+    swsh2: ["Rebel Clash"],
+    swsh1: ["Sword & Shield Base Set"],
+    sm12: ["Cosmic Eclipse"],
+    sm11: ["Unified Minds"],
+    sm10: ["Unbroken Bonds"],
+    sm9: ["Team Up"],
+    sm8: ["Lost Thunder"],
+    sm7: ["Celestial Storm"],
+    sm6: ["Forbidden Light"],
+    sm5: ["Ultra Prism"],
+    sm4: ["Crimson Invasion"],
+    sm3: ["Burning Shadows"],
+    sm2: ["Guardians Rising"],
+    xy12: ["Evolutions"],
+    xy11: ["Steam Siege"],
+    xy10: ["Fates Collide"],
+    xy9: ["BREAKpoint"],
+    xy8: ["BREAKthrough"],
+    xy7: ["Ancient Origins"],
+    xy6: ["Roaring Skies"],
+    xy5: ["Primal Clash"],
+    xy4: ["Phantom Forces"],
+    xy3: ["Furious Fists"],
+    xy2: ["Flashfire"],
+    xy1: ["XY Base Set"],
   };
-  const candidates = [setName, ...(setId ? knownNames[setId] ?? [] : [])]
+  const normalizedInput = normalizeSetName(setName);
+  const nameAliases: Record<string, string[]> = {
+    "151": ["Scarlet & Violet 151"],
+    "scarlet violet 151": ["Scarlet & Violet 151"],
+    "base": ["Base Set"],
+    "sword shield": ["Sword & Shield Base Set"],
+  };
+  const candidates = [
+    setName,
+    ...(setId ? knownNames[setId] ?? [] : []),
+    ...(nameAliases[normalizedInput] ?? []),
+  ]
     .map(normalizeSetName)
     .filter(Boolean);
 
@@ -68,7 +115,7 @@ async function resolveSetSlug(setName: string, setId?: string): Promise<string |
   if (!response.ok) return null;
 
   const html = await response.text();
-  const links = [...html.matchAll(/<a\\b[^>]*href=["']([^"']*\\/es\\/pokemon\\/expansiones\\/([^/"']+)\\/?)["'][^>]*>([\\s\\S]*?)<\\/a>/gi)];
+  const links = [...html.matchAll(/<a\b[^>]*href=["']([^"']*\/es\/pokemon\/expansiones\/([^/"']+)\/?)["'][^>]*>([\s\S]*?)<\/a>/gi)];
   const entries = links.map((match) => ({
     slug: match[2],
     name: normalizeSetName(stripHtml(match[3])),
@@ -79,8 +126,7 @@ async function resolveSetSlug(setName: string, setId?: string): Promise<string |
     if (exact) return exact.slug;
   }
 
-  // TCGdex sometimes uses a shorter name than TCG Vault (e.g. "151").
-  // Accept a unique partial match only; never guess when multiple sets match.
+  // Match unique name prefixes only; avoid confusing similarly named sets.
   for (const candidate of candidates) {
     const partial = entries.filter((entry) =>
       entry.name.startsWith(candidate + " ") || candidate.startsWith(entry.name + " ")
@@ -89,7 +135,6 @@ async function resolveSetSlug(setName: string, setId?: string): Promise<string |
   }
   return null;
 }
-
 function normalizeCardNumber(value: string): string {
   return value.replace(/^0+/, "") || "0";
 }
