@@ -100,7 +100,7 @@ export default function SetSort({
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 top-[calc(100%+8px)] z-50 min-w-[180px] overflow-hidden rounded-[20px] border border-black/5 bg-white/95 p-1.5 shadow-xl shadow-black/10 backdrop-blur-xl"
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-max min-w-[180px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-[20px] border border-black/5 bg-white/95 p-1.5 shadow-xl shadow-black/10 backdrop-blur-xl sm:left-0 sm:right-auto"
         >
           {options.map((option) => {
             const active = currentSort === option.value;
