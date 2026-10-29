@@ -51,6 +51,8 @@ function normalizeSetName(value: string): string {
 async function resolveSetSlug(setName: string, setId?: string): Promise<string | null> {
   const knownNames: Record<string, string[]> = {
     sv3pt5: ["Scarlet & Violet 151", "151"],
+    sv01: ["Scarlet & Violet Base Set"],
+    sv1: ["Scarlet & Violet Base Set"],
     base1: ["Base Set"],
     base2: ["Base Set 2"],
     swsh12pt5: ["Crown Zenith"],
@@ -94,6 +96,8 @@ async function resolveSetSlug(setName: string, setId?: string): Promise<string |
   const nameAliases: Record<string, string[]> = {
     "151": ["Scarlet & Violet 151"],
     "scarlet violet 151": ["Scarlet & Violet 151"],
+    "scarlet violet": ["Scarlet & Violet Base Set"],
+    "scarlet violet base set": ["Scarlet & Violet Base Set"],
     "base": ["Base Set"],
     "sword shield": ["Sword & Shield Base Set"],
   };
