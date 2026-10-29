@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import GlassPanel from "@/components/ui/GlassPanel";
 import SetCard from "@/components/pokemon/SetCard";
 import PokemonCard from "@/components/pokemon/PokemonCard";
+import SearchSort, { type SearchSortValue } from "@/components/pokemon/SearchSort";
 
 import {
   getAllSets,
@@ -29,6 +30,7 @@ interface SearchPageProps {
     tab?: string;
     setId?: string;
     page?: string;
+    sort?: string;
   }>;
 }
 
@@ -42,12 +44,13 @@ const SEARCH_CARDS_PER_PAGE = 12;
 const SEARCH_SETS_PER_PAGE = 6;
 const MAX_SEARCH_PAGE = 100;
 
-function buildNextPageHref(query: string, tab: SearchTab, page: number) {
+function buildNextPageHref(query: string, tab: SearchTab, page: number, sort: SearchSortValue) {
   const params = new URLSearchParams({
     q: query,
     tab,
     page: String(page + 1),
   });
+  if (sort !== "relevance") params.set("sort", sort);
 
   return `/search?${params.toString()}`;
 }
@@ -90,6 +93,23 @@ async function getUserCardStateIds(
     ),
   };
 }
+function sortSearchCards<T extends { name: string; setName: string; localId: string }>(
+  cards: T[],
+  sort: SearchSortValue
+): T[] {
+  if (sort === "relevance") return cards;
+  return [...cards].sort((a, b) => {
+    if (sort === "name") return a.name.localeCompare(b.name, "es", { sensitivity: "base" });
+    if (sort === "name-desc") return b.name.localeCompare(a.name, "es", { sensitivity: "base" });
+    if (sort === "set") {
+      const bySet = a.setName.localeCompare(b.setName, "es", { sensitivity: "base" });
+      return bySet || a.localId.localeCompare(b.localId, "en", { numeric: true });
+    }
+    const comparison = a.localId.localeCompare(b.localId, "en", { numeric: true });
+    return sort === "number-desc" ? -comparison : comparison;
+  });
+}
+
 export default async function SearchPage({
   searchParams,
 }: SearchPageProps) {
@@ -129,6 +149,8 @@ export default async function SearchPage({
       ? tab
       : "all";
 
+  const validSorts: SearchSortValue[] = ["relevance", "name", "name-desc", "set", "number", "number-desc"];
+  const sort: SearchSortValue = validSorts.includes(params.sort as SearchSortValue) ? (params.sort as SearchSortValue) : "relevance";
   const requestedPage = Number.parseInt(params.page ?? "1", 10);
   const page =
     Number.isFinite(requestedPage) && requestedPage > 0
@@ -262,7 +284,8 @@ export default async function SearchPage({
           setName: setNames.get(setId) ?? setId,
         };
       });
-    const matchingCards = matchingCardsAll.slice(0, cardLimit);
+    const sortedCards = sortSearchCards(matchingCardsAll, sort);
+    const matchingCards = sortedCards.slice(0, cardLimit);
 
     return (
       <SearchResults
@@ -299,7 +322,8 @@ export default async function SearchPage({
           (matchingSetsAll.length > setLimit ||
             matchingCardsAll.length > cardLimit)
         }
-        nextPageHref={buildNextPageHref(query, tab, page)}
+        nextPageHref={buildNextPageHref(query, tab, page, sort)}
+        sort={sort}
       />
     );
   }
@@ -338,7 +362,8 @@ export default async function SearchPage({
       setName: setNames.get(setId) ?? setId,
     };
   });
-  const matchingCards = matchingCardsAll.slice(0, cardLimit);
+  const sortedCards = sortSearchCards(matchingCardsAll, sort);
+  const matchingCards = sortedCards.slice(0, cardLimit);
 
   const searchSetsAll = matchingSetsAll.map((set) => ({
     id: set.id,
@@ -371,7 +396,8 @@ export default async function SearchPage({
       totalSetResults={totalSetResults}
       totalCardResults={totalCardResults}
       hasMore={hasMore}
-      nextPageHref={buildNextPageHref(query, tab, page)}
+      nextPageHref={buildNextPageHref(query, tab, page, sort)}
+      sort={sort}
     />
   );
 }
@@ -386,6 +412,7 @@ interface SearchResultsProps {
   totalCardResults?: number;
   hasMore?: boolean;
   nextPageHref?: string;
+  sort?: SearchSortValue;
   sets: Array<{
     id: string;
     name: string;
@@ -414,6 +441,7 @@ function SearchResults({
   totalCardResults,
   hasMore = false,
   nextPageHref,
+  sort = "relevance",
   sets,
   cards,
 }: SearchResultsProps) {
@@ -471,7 +499,9 @@ function SearchResults({
             { value: "wishlist", label: "Wishlist" },
           ] satisfies Array<{ value: SearchTab; label: string }>).map((item) => {
             const isActive = activeTab === item.value;
-            const href = `/search?q=${encodeURIComponent(query)}&tab=${item.value}`;
+            const tabParams = new URLSearchParams({ q: query, tab: item.value });
+            if (sort !== "relevance") tabParams.set("sort", sort);
+            const href = `/search?${tabParams.toString()}`;
 
             return (
               <Link
@@ -533,13 +563,16 @@ function SearchResults({
 
             {cards.length > 0 && (
               <section>
-                <div className="mb-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
-                    Cartas
-                  </p>
-                  <h2 className="mt-1 text-xl font-semibold text-zinc-900">
-                    Cartas encontradas
-                  </h2>
+                <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                      Cartas
+                    </p>
+                    <h2 className="mt-1 text-xl font-semibold text-zinc-900">
+                      Cartas encontradas
+                    </h2>
+                  </div>
+                  <SearchSort currentSort={sort} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
